@@ -450,6 +450,8 @@ import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, 
 import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy,
          onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs }
                                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getMessaging, getToken, onMessage }
+                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 
 /* ══════════════════════════════════
    FIREBASE INIT
@@ -462,9 +464,11 @@ const firebaseConfig = {
   messagingSenderId: "847309476601",
   appId: "1:847309476601:web:e2ce35491762b7012b4828"
 };
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const app       = initializeApp(firebaseConfig);
+const auth      = getAuth(app);
+const db        = getFirestore(app);
+const messaging = getMessaging(app);
+const VAPID_KEY = 'BJcJqLGGDoK9_9JMPKptqqb8iflEVZVt4WL-rllHwWmA7WX0j8nW52KnHSdacOnrFq5H5Cqv0l9KtbxE2LH71ng';
 
 /* ══════════════════════════════════
    INDEXED DB (local video storage)
@@ -660,6 +664,41 @@ async function launchApp(){
   document.getElementById('waveformVideo').style.cssText='display:none;align-items:center;justify-content:center;gap:3px;height:24px;';
   document.querySelectorAll('.app-button').forEach(btn=>btn.addEventListener('click',e=>addRipple(btn,e)));
   setInterval(runAutoDelete,60000);
+  // Register service worker + push notifications
+  await initPushNotifications();
+  // Listen for incoming notifications
+  listenForNotifications();
+  // Listen for foreground messages
+  onMessage(messaging, payload=>{
+    const from = payload.data?.senderName || 'Someone';
+    const type = payload.data?.type || 'voice';
+    showToast('📩 New '+type+' message from '+from);
+    // Refresh messages if conversation is open
+    const senderUid = payload.data?.senderUid;
+    if(senderUid && selectedTarget && selectedTarget.uid===senderUid){
+      renderChat(); renderVideoHistory();
+    }
+  });
+}
+
+async function initPushNotifications(){
+  try{
+    // Register service worker
+    if(!('serviceWorker' in navigator)){console.warn('SW not supported');return;}
+    const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    // Ask permission
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted'){console.warn('Notification permission denied');return;}
+    // Get FCM token
+    const token = await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
+    if(token){
+      // Save token to Firestore so others can send push to this device
+      await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});
+      console.log('FCM token saved');
+    }
+  }catch(e){
+    console.warn('Push notification setup failed:',e);
+  }
 }
 
 /* ══════════════════════════════════
@@ -848,6 +887,65 @@ function subscribeToMessages(friendUid){
 }
 
 /* Mark messages as read when viewing */
+/* ══════════════════════════════════
+   PUSH NOTIFICATIONS
+   Strategy: write notification request to Firestore.
+   Recipient's service worker picks it up via onSnapshot when app is open.
+   For background, FCM delivers via stored token.
+══════════════════════════════════ */
+async function sendPushToUser(recipientUid, msgType){
+  try{
+    // Write a notification doc — recipient's client cleans it up after reading
+    await addDoc(collection(db,'notifications'),{
+      toUid: recipientUid,
+      fromUid: currentUser.uid,
+      fromName: myName,
+      type: msgType,
+      sentAt: serverTimestamp(),
+      read: false
+    });
+  }catch(e){console.warn('Push queue write failed:',e);}
+}
+
+// Listen for incoming notification docs addressed to me
+function listenForNotifications(){
+  if(!currentUser)return;
+  const q = query(
+    collection(db,'notifications'),
+    where('toUid','==',currentUser.uid),
+    where('read','==',false)
+  );
+  onSnapshot(q, snap=>{
+    snap.docChanges().forEach(async change=>{
+      if(change.type==='added'){
+        const n = change.doc.data();
+        const isAppVisible = document.visibilityState==='visible';
+        if(isAppVisible){
+          showToast('📩 New '+n.type+' from '+(n.fromName||'someone'));
+        }else{
+          // Show browser notification
+          if(Notification.permission==='granted'){
+            new Notification('TellBack — new '+(n.type||'message'),{
+              body: (n.fromName||'Someone')+' sent you a '+(n.type||'message'),
+              icon: '/icon-192.png',
+              tag: 'tellback-'+n.fromUid
+            });
+          }
+        }
+        // Mark as read so we don't show it again
+        await updateDoc(doc(db,'notifications',change.doc.id),{read:true}).catch(()=>{});
+        // Refresh messages if conversation open
+        if(selectedTarget&&selectedTarget.uid===n.fromUid){
+          renderChat();renderVideoHistory();
+        }
+        // Flash unread dot
+        const dot=document.getElementById('dot-'+n.fromUid);
+        if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');
+      }
+    });
+  });
+}
+
 async function markRead(friendUid){
   const cid   = convId(currentUser.uid, friendUid);
   const msgs  = msgCache[friendUid]||[];
@@ -1163,12 +1261,13 @@ function bindRecordBtn(btn,waveEl,hintEl,mode){
         try{await idbSet(localId,blob);}catch(e){btn.disabled=false;showToast('⚠️ Storage full');return;}
         // Save metadata to Firestore (no blob)
         const cid=convId(currentUser.uid,saveTarget.uid);
-        await addDoc(collection(db,'conversations',cid,'messages'),{
+        const videoMsgRef = await addDoc(collection(db,'conversations',cid,'messages'),{
           senderUid:currentUser.uid,senderName:myName,
           type:'video',localId,
           transcript:liveTranscript||null,
           sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
         });
+        await sendPushToUser(saveTarget.uid,'video');
       }else{
         // Voice: convert to base64 and store in Firestore
         const reader=new FileReader();
@@ -1183,6 +1282,8 @@ function bindRecordBtn(btn,waveEl,hintEl,mode){
               sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
             });
           }catch(e){console.error(e);showToast('⚠️ Failed to send: '+e.message);btn.disabled=false;return;}
+          // Send push notification to recipient
+          await sendPushToUser(saveTarget.uid,'voice');
           // Play back locally
           const audio=new Audio(URL.createObjectURL(blob));audio.play().catch(()=>{});
           btn.disabled=false;
