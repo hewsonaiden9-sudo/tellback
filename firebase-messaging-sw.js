@@ -12,24 +12,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle background notifications (app is closed or in background)
 messaging.onBackgroundMessage(payload => {
-  const { title, body, icon } = payload.notification || {};
-  self.registration.showNotification(title || 'TellBack', {
-    body: body || 'You have a new message',
-    icon: icon || '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: payload.data?.conversationId || 'tellback-msg',
-    data: payload.data || {},
-    vibrate: [200, 100, 200],
-    actions: [{ action: 'open', title: 'Open' }]
+  self.registration.showNotification(payload.notification?.title || 'TellBack', {
+    body: payload.notification?.body || 'New message',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag: payload.data?.fromUid || 'tellback',
+    vibrate: [200, 100, 200]
   });
 });
 
-// Notification click — open or focus the app
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = self.location.origin + self.location.pathname.replace('firebase-messaging-sw.js','');
+  const url = self.location.href.replace('firebase-messaging-sw.js', '');
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       const existing = list.find(c => c.url.startsWith(url));
