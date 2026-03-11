@@ -352,6 +352,22 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
   <button class="app-button" onclick="showAddFriendModal()">＋ Add Friend by Phone</button>
 </div>
 
+<!-- GROUPS -->
+<div class="container subpage" id="groupsPage">
+  <div class="card">
+    <div class="card-title">Groups</div>
+    <div id="groupsList"></div>
+    <div class="empty hidden" id="groupsEmpty"><div class="emoji">👥</div>No groups yet</div>
+  </div>
+  <button class="app-button" onclick="toggleCreateGroup()">＋ Create Group</button>
+  <div class="card hidden" id="createGroupPanel" style="margin-top:10px;">
+    <div class="card-title">New Group</div>
+    <div id="groupFriendCheckboxes"></div>
+    <input id="groupNameInput" type="text" placeholder="Group name…">
+    <button class="app-button" onclick="createGroup()">Save Group</button>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="container subpage" id="settingsPage">
   <div class="card">
@@ -392,6 +408,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
 <div class="bottom-nav">
   <div class="nav-btn active" onclick="showPage('homePage',this)"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
   <div class="nav-btn" onclick="showPage('friendsPage',this)"><div class="nav-icon">👤</div><div class="nav-label">Friends</div></div>
+  <div class="nav-btn" onclick="showPage('groupsPage',this)"><div class="nav-icon">👥</div><div class="nav-label">Groups</div></div>
   <div class="nav-btn" onclick="showPage('settingsPage',this)"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
 </div>
 
@@ -534,44 +551,16 @@ function goBackToStep1(){
 }
 
 async function sendCode(){
+  // Just validates the number — actual sending happens in reCAPTCHA callback
   const raw = document.getElementById('phoneInput').value.trim();
   const errEl = document.getElementById('authError1');
   errEl.textContent='';
-  if(!raw){errEl.textContent='Please enter your phone number.';return;}
-  // Strip all formatting, accept any spacing/dashes/parens style
+  if(!raw){errEl.textContent='Please enter your phone number first.';return;}
   const digits = raw.replace(/[^\d+]/g,'');
-  const phone = digits.startsWith('+') ? digits : '+1'+digits;
-  const btn   = document.getElementById('sendCodeBtn');
-  btn.disabled=true; btn.textContent='Sending…';
-
-  try{
-    // Always reset recaptcha before each attempt to avoid stale token errors
-    if(recaptchaVerifier){
-      try{recaptchaVerifier.clear();}catch(_){}
-      recaptchaVerifier=null;
-    }
-    recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
-      size:'normal',
-      callback:()=>{},
-      'expired-callback':()=>{
-        showToast('⚠️ reCAPTCHA expired — please try again');
-        recaptchaVerifier=null;
-      }
-    });
-    await recaptchaVerifier.render();
-    confirmResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-    document.getElementById('otpDesc').textContent = `Sent to ${phone}`;
-    document.getElementById('authStep1').classList.remove('active');
-    document.getElementById('authStep2').classList.add('active');
-    setTimeout(()=>document.getElementById('otp0').focus(),200);
-  }catch(e){
-    console.error(e);
-    errEl.textContent = e.message||'Failed to send code. Check your number and try again.';
-    // Reset recaptcha on error
-    if(recaptchaVerifier){try{recaptchaVerifier.clear();}catch(_){} recaptchaVerifier=null;}
-  }finally{
-    btn.disabled=false; btn.textContent='Send Code';
-  }
+  const phone  = digits.startsWith('+') ? digits : '+1'+digits;
+  if(phone.replace(/\D/g,'').length < 8){errEl.textContent='Number looks too short — include country code e.g. +1 555 000 0000';return;}
+  errEl.textContent='';
+  showToast('✅ Number saved — now complete the check below');
 }
 
 /* ── OTP input auto-advance ── */
@@ -662,6 +651,7 @@ async function launchApp(){
   document.getElementById('headerUser').textContent=myName;
   document.getElementById('settingPhone').textContent=myPhone;
   await loadFriends();
+  renderGroups();
   renderSpeedSend();
   renderChat();
   renderVideoHistory();
@@ -797,22 +787,24 @@ function getInitials(name){return name.split(' ').map(w=>w[0]||'').join('').toUp
 function renderSpeedSend(){
   const box=document.getElementById('speedSend');
   box.innerHTML='';
-  if(!friends.length){
+  const allContacts=[...friends,...(groups||[]).map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members}))];
+  if(!allContacts.length){
     box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">👋</div>Add a friend to get started</div>';
     return;
   }
-  friends.forEach((f,idx)=>{
+  allContacts.forEach((f,idx)=>{
     const name=f.nickname||f.name;
     const chip=document.createElement('div');
     chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');
     chip.style.animationDelay=idx*30+'ms';
-    chip.innerHTML=`<div class="chip-avatar">${getInitials(name)}<span class="unread-dot" id="dot-${f.uid}"></span></div><div class="chip-name">${name}</div>`;
+    const avatar=f.isGroup?'👥':getInitials(name);
+    chip.innerHTML=`<div class="chip-avatar">${avatar}${!f.isGroup?`<span class="unread-dot" id="dot-${f.uid}"></span>`:''}</div><div class="chip-name">${name}</div>`;
     chip.onclick=()=>{
       selectedTarget=f;
       renderSpeedSend();
       updateVTTarget();
       updateSelectedLabel();
-      subscribeToMessages(f.uid);
+      if(!f.isGroup)subscribeToMessages(f.uid);
       renderChat();
       renderVideoHistory();
     };
@@ -1266,14 +1258,50 @@ function addRipple(btn,e){
 ══════════════════════════════════ */
 await openIDB();
 
-// Pre-render reCAPTCHA on load so it's ready when user hits Send
+// Pre-render reCAPTCHA — callback fires signInWithPhoneNumber automatically
 try{
   recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
     size:'normal',
-    callback:()=>{},
-    'expired-callback':()=>{recaptchaVerifier=null;}
+    callback: async()=>{
+      // reCAPTCHA solved — now send the SMS
+      const raw = document.getElementById('phoneInput').value.trim();
+      const digits = raw.replace(/[^\d+]/g,'');
+      const phone = digits.startsWith('+') ? digits : '+1'+digits;
+      const errEl = document.getElementById('authError1');
+      const btn   = document.getElementById('sendCodeBtn');
+      if(!phone||phone.length<8){
+        errEl.textContent='Enter your phone number first, then complete the check.';
+        return;
+      }
+      btn.disabled=true; btn.textContent='Sending…';
+      try{
+        confirmResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+        document.getElementById('otpDesc').textContent = 'Code sent to '+phone;
+        document.getElementById('authStep1').classList.remove('active');
+        document.getElementById('authStep2').classList.add('active');
+        setTimeout(()=>document.getElementById('otp0').focus(),200);
+      }catch(e){
+        console.error(e);
+        errEl.textContent = e.message||'Failed to send. Check your number.';
+        // Reset recaptcha
+        try{recaptchaVerifier.clear();}catch(_){}
+        recaptchaVerifier=null;
+        // Re-render
+        try{
+          recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:()=>{},'expired-callback':()=>{recaptchaVerifier=null;}});
+          await recaptchaVerifier.render();
+        }catch(_){}
+      }finally{
+        btn.disabled=false; btn.textContent='Send Code';
+      }
+    },
+    'expired-callback':()=>{
+      showToast('⚠️ Check expired — please try again');
+      recaptchaVerifier=null;
+    }
   });
   await recaptchaVerifier.render();
+  document.getElementById('recaptchaLabel').textContent='Enter your number above, then complete the check to send your code';
 }catch(e){console.warn('reCAPTCHA pre-render:',e);}
 
 // Expose globals needed by inline onclick handlers
@@ -1284,9 +1312,73 @@ window.verifyCode=verifyCode; window.saveDisplayName=saveDisplayName;
 window.goBackToStep1=goBackToStep1; window.signOutUser=signOutUser;
 window.showClearDataModal=showClearDataModal; window.confirmClearData=confirmClearData;
 window.openModal=openModal; window.closeModal=closeModal;
+window.toggleCreateGroup=toggleCreateGroup; window.createGroup=createGroup;
+window.renameGroup=renameGroup; window.deleteGroup=deleteGroup;
+
+/* ══════════════════════════════════
+   GROUPS (local — stored in localStorage)
+══════════════════════════════════ */
+let groups = JSON.parse(localStorage.getItem('tb_groups')||'[]');
+
+function saveGroups(){localStorage.setItem('tb_groups',JSON.stringify(groups));}
+
+function renderGroups(){
+  const list=document.getElementById('groupsList');
+  const empty=document.getElementById('groupsEmpty');
+  if(!list)return;
+  list.innerHTML='';
+  if(!groups.length){empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  groups.forEach((g,i)=>{
+    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
+    div.innerHTML=`<span>👥 ${g.name} <small style="opacity:.5;font-size:11px;">(${g.members.join(', ')})</small></span>
+      <div class="item-actions">
+        <button class="action-btn rename" onclick="renameGroup(${i})">Rename</button>
+        <button class="action-btn remove" onclick="deleteGroup(${i})">Remove</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleCreateGroup(){
+  document.getElementById('createGroupPanel').classList.toggle('hidden');
+  renderGroupCheckboxes();
+}
+
+function renderGroupCheckboxes(){
+  const c=document.getElementById('groupFriendCheckboxes');
+  if(!c)return;
+  c.innerHTML='';
+  friends.forEach(f=>{
+    const name=f.nickname||f.name;
+    const l=document.createElement('label');
+    l.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);';
+    l.innerHTML=`<input type="checkbox" value="${f.uid}" style="accent-color:var(--primary);width:16px;height:16px;"> ${name}`;
+    c.appendChild(l);
+  });
+}
+
+function createGroup(){
+  const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
+  const name=document.getElementById('groupNameInput').value.trim();
+  if(sel.length<2||!name){showToast('⚠️ Need a name + 2 friends');return;}
+  // Store member names for display
+  const memberNames=sel.map(uid=>{const f=friends.find(x=>x.uid===uid);return f?f.nickname||f.name:uid;});
+  groups.push({name,members:sel,memberNames});
+  document.getElementById('groupNameInput').value='';
+  saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();showToast('✅ Group created');
+}
+
+function renameGroup(i){
+  const n=prompt('Rename group:',groups[i].name);if(!n)return;
+  groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();
+}
+
+function deleteGroup(i){
+  if(!confirm('Delete "'+groups[i].name+'"?'))return;
+  groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();
+}
 
 </script>
 </body>
 </html>
-
-
