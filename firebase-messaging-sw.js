@@ -29,7 +29,7 @@ messaging.onBackgroundMessage(payload => {
 // Notification click — open or focus the app
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = self.location.origin + '/';
+  const url = self.location.origin + self.location.pathname.replace('firebase-messaging-sw.js','');
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       const existing = list.find(c => c.url.startsWith(url));
@@ -37,4 +37,4 @@ self.addEventListener('notificationclick', e => {
       return clients.openWindow(url);
     })
   );
-});S
+});
