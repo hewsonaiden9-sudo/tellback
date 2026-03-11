@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#ffffff" id="themeColorMeta">
+<meta name="apple-mobile-web-app-title" content="TellBack">
+<meta name="theme-color" content="#2563eb" id="themeColorMeta">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <title>TellBack</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
@@ -20,61 +24,43 @@ body.dark{
   --primary:#4f8ef7;--primary-dark:#3b7bf0;--primary-soft:rgba(79,142,247,.12);--border:#252438;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html{height:100%;}
+html,body{height:100%;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100%;transition:background .3s,color .3s;overscroll-behavior:none;}
 
-/* ── AUTH SCREEN ── */
-#authScreen{
-  position:fixed;inset:0;z-index:500;
-  background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:32px 24px;
-  animation:pageIn .3s ease both;
-}
+/* ── AUTH ── */
+#authScreen{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;}
 #authScreen.hidden{display:none;}
 .auth-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:36px;letter-spacing:-1px;margin-bottom:6px;}
 .auth-logo span{color:var(--primary);}
-.auth-sub{font-size:14px;color:var(--sub);margin-bottom:40px;text-align:center;line-height:1.5;}
+.auth-sub{font-size:14px;color:var(--sub);margin-bottom:32px;text-align:center;line-height:1.5;}
 .auth-card{background:var(--card);border-radius:24px;padding:24px;width:100%;max-width:360px;border:1px solid var(--border);box-shadow:0 4px 24px rgba(0,0,0,.08);}
 .auth-step{display:none;}
 .auth-step.active{display:block;}
-.auth-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:8px;}
+.auth-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:6px;}
 .auth-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:6px;}
-.auth-desc{font-size:13px;color:var(--sub);margin-bottom:18px;line-height:1.5;}
-.phone-input-wrap{display:flex;gap:8px;align-items:center;}
-.country-code{padding:12px 10px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;width:72px;outline:none;text-align:center;}
+.auth-desc{font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.5;}
+.fmt-hint{font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;margin-bottom:6px;}
 .otp-inputs{display:flex;gap:8px;justify-content:center;margin:16px 0;}
 .otp-input{width:44px;height:52px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-size:22px;font-weight:700;text-align:center;outline:none;transition:border-color .15s;}
 .otp-input:focus{border-color:var(--primary);}
-.auth-name-wrap input{margin-top:0;}
 #recaptcha-container{margin:12px 0;}
-.auth-error{font-size:12px;color:var(--danger);margin-top:8px;min-height:16px;}
-.auth-back{font-size:12px;color:var(--sub);text-align:center;margin-top:12px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.3px;}
+.recaptcha-hint{font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;margin-bottom:6px;}
+.auth-error{font-size:12px;color:var(--danger);margin-top:6px;min-height:16px;}
+.auth-back{font-size:12px;color:var(--sub);text-align:center;margin-top:10px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;}
 .auth-back:hover{color:var(--primary);}
 
 /* ── HEADER ── */
 header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:var(--header-h);background:var(--card);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 .header-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;}
 .header-logo span{color:var(--primary);}
-.header-right{display:flex;align-items:center;gap:10px;}
-.header-badge{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;background:var(--primary-soft);color:var(--primary);padding:3px 8px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;}
-.header-user{font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.header-user{font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:700;}
+.status-dot-sm{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:2px;}
 
 /* ── PAGES ── */
 .container{padding:14px 14px calc(var(--nav-h) + var(--safe-bottom) + 14px);max-width:540px;margin:0 auto;}
 .subpage{display:none;}
 .subpage.active{display:block;animation:pageIn .25s cubic-bezier(.22,1,.36,1) both;}
-
-/* ── HOME TABS ── */
-.home-tabs{display:flex;background:var(--card);border-radius:16px;padding:4px;gap:4px;margin-bottom:14px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.04);}
-.htab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--sub);transition:background .2s,color .2s,box-shadow .2s;}
-.htab .htab-icon{font-size:16px;line-height:1;}
-.htab.active{background:var(--primary);color:white;box-shadow:0 3px 10px rgba(37,99,235,.3);}
-
-/* ── TAB PANELS ── */
-.tab-panel{display:none;}
-.tab-panel.active{display:block;animation:panelIn .22s cubic-bezier(.22,1,.36,1) both;}
-@keyframes panelIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── CARDS ── */
 .card{background:var(--card);padding:16px;border-radius:18px;margin-bottom:12px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,.04);animation:cardIn .3s cubic-bezier(.22,1,.36,1) both;}
@@ -90,88 +76,72 @@ header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-
 .contact-chip.selected .chip-name{color:var(--primary);}
 .chip-avatar{width:48px;height:48px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--sub);transition:background .2s,box-shadow .2s;position:relative;}
 .chip-name{font-size:11px;font-weight:600;color:var(--sub);max-width:56px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s;}
-/* unread dot */
-.chip-avatar .unread-dot{position:absolute;top:0;right:0;width:12px;height:12px;background:#ef4444;border-radius:50%;border:2px solid var(--card);display:none;}
-.chip-avatar .unread-dot.show{display:block;}
+.unread-dot{position:absolute;top:0;right:0;width:12px;height:12px;background:#ef4444;border-radius:50%;border:2px solid var(--card);display:none;}
+.unread-dot.show{display:block;}
+.chip-status{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;border:2px solid var(--card);}
 
 /* ── RECORD BUTTON ── */
-.record-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 10px;}
-#sendBtn,#sendBtnVideo{width:80px;height:80px;border-radius:50%;border:none;background:var(--primary);color:white;font-size:28px;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,.4);transition:transform .12s,box-shadow .15s,background .15s;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-#sendBtn:active{transform:scale(.92);}
-#sendBtn.recording,#sendBtnVideo.recording{background:#dc2626;box-shadow:0 0 0 0 rgba(220,38,38,.5);animation:pulseRed 1s infinite;}
-#sendBtn.sent,#sendBtnVideo.sent{animation:sentFlash .6s ease forwards;}
-#sendBtn:disabled,#sendBtnVideo:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.record-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0 12px;}
+#sendBtn{width:88px;height:88px;border-radius:50%;border:none;background:var(--primary);color:white;font-size:30px;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,.4);transition:transform .12s,box-shadow .15s,background .15s;position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#sendBtn.recording{background:#dc2626;box-shadow:0 0 0 0 rgba(220,38,38,.5);animation:pulseRed 1s infinite;}
+#sendBtn.sent{animation:sentFlash .6s ease forwards;}
+#sendBtn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .record-hint{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;}
 .record-hint.recording-hint{color:#dc2626;}
 
-/* ── WAVEFORM ── */
-#waveform{display:none;align-items:center;justify-content:center;gap:3px;height:24px;}
-#waveform.active{display:flex;}
-.wave-bar{width:3px;border-radius:3px;background:var(--primary);animation:waveBounce .6s ease-in-out infinite;}
-.wave-bar:nth-child(1){animation-delay:0s;height:8px;}.wave-bar:nth-child(2){animation-delay:.1s;height:14px;}.wave-bar:nth-child(3){animation-delay:.2s;height:20px;}.wave-bar:nth-child(4){animation-delay:.3s;height:14px;}.wave-bar:nth-child(5){animation-delay:.4s;height:8px;}.wave-bar:nth-child(6){animation-delay:.1s;height:18px;}.wave-bar:nth-child(7){animation-delay:.25s;height:12px;}
-
-/* ── CAMERA ── */
-.camera-card{position:relative;overflow:hidden;padding:0;border-radius:18px;}
-#cameraPreview{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#111;border-radius:18px;}
-.camera-overlay{position:absolute;bottom:10px;right:10px;display:flex;gap:6px;}
-.cam-pill{padding:6px 12px;border:none;border-radius:20px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;background:rgba(0,0,0,.55);color:white;backdrop-filter:blur(6px);transition:background .15s;}
-.cam-pill:hover{background:rgba(0,0,0,.75);}
-.cam-pill.active-cam{background:var(--primary);}
+/* ── LIVE WAVEFORM ── */
+.waveform-wrap{height:48px;display:none;align-items:center;justify-content:center;gap:3px;}
+.waveform-wrap.active{display:flex;}
+.wv-bar{width:4px;border-radius:4px;background:var(--primary);transition:height .05s ease;}
 
 /* ── CHAT HISTORY ── */
-.chat-history{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:2px;margin-top:4px;}
+.chat-history{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;padding-right:2px;margin-top:4px;}
 .chat-history::-webkit-scrollbar{width:3px;}
-.chat-history::-webkit-scrollbar-track{background:transparent;}
 .chat-history::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 .chat-bubble{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:11px;animation:bubbleIn .22s cubic-bezier(.34,1.4,.64,1) both;position:relative;transition:border-color .2s,background .2s;}
 .chat-bubble.pinned{border-color:var(--primary);background:var(--primary-soft);}
 .chat-bubble.incoming{border-left:3px solid var(--success);}
 .pin-flag{position:absolute;top:8px;right:9px;font-size:11px;}
-.bubble-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.bubble-top{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
 .bubble-ts{font-size:10px;color:var(--sub);font-family:'Syne',sans-serif;letter-spacing:.3px;flex:1;}
-.bubble-type{font-size:9px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:.6px;padding:2px 6px;border-radius:5px;text-transform:uppercase;}
-.bubble-type.voice{background:rgba(37,99,235,.1);color:var(--primary);}
-.bubble-type.video{background:rgba(22,163,74,.1);color:#16a34a;}
+.bubble-type{font-size:9px;font-weight:700;font-family:'Syne',sans-serif;letter-spacing:.6px;padding:2px 6px;border-radius:5px;text-transform:uppercase;background:rgba(37,99,235,.1);color:var(--primary);}
 .bubble-dir{font-size:9px;font-weight:700;font-family:'Syne',sans-serif;padding:2px 6px;border-radius:5px;text-transform:uppercase;}
 .bubble-dir.out{background:rgba(37,99,235,.08);color:var(--sub);}
 .bubble-dir.in{background:rgba(22,163,74,.08);color:#16a34a;}
 .bubble-actions{display:flex;gap:5px;margin-top:8px;}
 .bub-btn{border:none;cursor:pointer;padding:4px 10px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:background .15s;}
 .bub-btn.pin{background:rgba(37,99,235,.1);color:var(--primary);}
-.bub-btn.pin:hover{background:rgba(37,99,235,.2);}
 .bub-btn.del{background:rgba(220,38,38,.1);color:var(--danger);}
-.bub-btn.del:hover{background:rgba(220,38,38,.2);}
 .bubble-transcript{font-size:11px;color:var(--sub);margin-top:4px;font-style:italic;line-height:1.4;}
 audio{width:100%;border-radius:8px;margin-top:4px;height:36px;}
-.msg-video{width:100%;border-radius:10px;margin-top:6px;background:#000;max-height:180px;}
 .expiry-badge{font-size:10px;color:var(--sub);margin-top:4px;font-family:'Syne',sans-serif;}
 .expiry-badge.soon{color:#f59e0b;}.expiry-badge.expired{color:var(--danger);}
-.media-loading{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);padding:6px 0;}
-.spin{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
 
 /* ── ITEMS ── */
-.item{padding:10px 12px;border-radius:13px;margin:3px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s,transform .1s;border:1px solid transparent;animation:itemIn .2s cubic-bezier(.22,1,.36,1) both;position:relative;overflow:hidden;}
-.item:active{transform:scale(.97);}
+.item{padding:10px 12px;border-radius:13px;margin:3px 0;display:flex;justify-content:space-between;align-items:center;transition:background .15s,transform .1s;border:1px solid transparent;animation:itemIn .2s cubic-bezier(.22,1,.36,1) both;position:relative;}
 .item:hover{background:rgba(0,0,0,.04);}
 body.dark .item:hover{background:rgba(255,255,255,.05);}
-.item.selected{background:var(--primary);color:white;border-color:var(--primary-dark);}
-.item.removing{animation:itemOut .2s ease forwards;pointer-events:none;overflow:hidden;}
 .item-actions{display:flex;gap:5px;flex-shrink:0;}
 .action-btn{border:none;cursor:pointer;padding:4px 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;transition:background .15s,color .15s;}
 .action-btn.rename{background:rgba(37,99,235,.1);color:var(--primary);}
 .action-btn.remove{background:rgba(220,38,38,.1);color:var(--danger);}
-.item.selected .action-btn.rename{background:rgba(255,255,255,.2);color:white;}
-.item.selected .action-btn.remove{background:rgba(255,255,255,.15);color:white;}
 
-/* ── APP BUTTON ── */
+/* ── BUTTONS ── */
 .app-button{width:100%;padding:14px;border:none;border-radius:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;background:var(--primary);color:white;cursor:pointer;margin-top:10px;letter-spacing:.3px;transition:background .15s,transform .1s;position:relative;overflow:hidden;}
 .app-button:hover{background:var(--primary-dark);}
 .app-button:active{transform:scale(.97);}
 .app-button.secondary{background:transparent;border:1.5px solid var(--primary);color:var(--primary);}
 .app-button.danger{background:var(--danger);}
-.app-button.danger:hover{background:#b71c1c;}
 .app-button:disabled{opacity:.5;cursor:not-allowed;}
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:rippleAnim .5s linear;pointer-events:none;}
+
+/* ── STATUS ── */
+.status-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.status-opt{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;transition:border-color .15s,background .15s;flex:1;min-width:120px;}
+.status-opt:hover{background:var(--primary-soft);}
+.status-opt.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary);}
+.status-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.s-online{background:#22c55e;}.s-away{background:#f59e0b;}.s-busy{background:#ef4444;}.s-offline{background:#94a3b8;}
 
 /* ── SETTINGS ── */
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);}
@@ -190,13 +160,11 @@ input:checked+.slider:before{transform:translateX(20px);}
 .nav-btn{cursor:pointer;padding:6px 12px;border-radius:12px;transition:background .15s;opacity:.4;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;min-width:56px;}
 .nav-icon{font-size:21px;line-height:1;}
 .nav-label{font-size:10px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.3px;}
-.nav-btn:hover{background:rgba(0,0,0,.05);}
 .nav-btn.active{opacity:1;color:var(--primary);}
 .nav-btn.active::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:var(--primary);animation:dotPop .2s cubic-bezier(.34,1.56,.64,1) both;}
-@keyframes dotPop{from{width:0;opacity:0;}to{width:18px;opacity:1;}}
 
 /* ── MODALS ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;padding:0;opacity:0;transition:opacity .2s;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s;}
 .modal-overlay.open{display:flex;opacity:1;}
 .modal{background:var(--card);border-radius:24px 24px 0 0;padding:24px 24px calc(24px + var(--safe-bottom));width:100%;max-width:540px;border-top:1px solid var(--border);transform:translateY(100%);opacity:0;transition:transform .3s cubic-bezier(.22,1,.36,1),opacity .2s;}
 .modal-overlay.open .modal{transform:translateY(0);opacity:1;}
@@ -205,7 +173,7 @@ input:checked+.slider:before{transform:translateX(20px);}
 .modal-actions{display:flex;gap:10px;margin-top:14px;}
 .modal-actions .app-button{flex:1;margin-top:0;padding:13px;}
 
-/* ── INPUT ── */
+/* ── INPUTS ── */
 input[type=text],input[type=tel]{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);margin-top:8px;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s;}
 input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
 
@@ -215,47 +183,47 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
 .hidden{display:none!important;}
 #toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(8px);background:rgba(15,14,20,.9);color:white;padding:9px 18px;border-radius:12px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;opacity:0;transition:opacity .22s,transform .22s;z-index:300;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.transcribing{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px;justify-content:center;margin-top:6px;}
+.transcribing{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px;justify-content:center;}
 .dot-anim{display:inline-flex;gap:3px;}
 .dot-anim span{width:5px;height:5px;border-radius:50%;background:var(--primary);animation:blink 1s infinite;}
 .dot-anim span:nth-child(2){animation-delay:.2s;}
 .dot-anim span:nth-child(3){animation-delay:.4s;}
+.spin{width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;}
+.media-loading{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);padding:6px 0;}
 
 /* ── ANIMATIONS ── */
 @keyframes pageIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @keyframes cardIn{from{opacity:0;transform:translateY(8px) scale(.99);}to{opacity:1;transform:translateY(0) scale(1);}}
 @keyframes itemIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
 @keyframes bubbleIn{from{opacity:0;transform:scale(.95) translateY(5px);}to{opacity:1;transform:scale(1) translateY(0);}}
-@keyframes itemOut{from{opacity:1;transform:translateX(0);max-height:80px;margin:3px 0;}to{opacity:0;transform:translateX(12px);max-height:0;margin:0;padding:0;}}
 @keyframes sentFlash{0%{background:var(--primary);}40%{background:var(--success);}100%{background:var(--primary);}}
 @keyframes rippleAnim{to{transform:scale(4);opacity:0;}}
-@keyframes waveBounce{0%,100%{transform:scaleY(1);}50%{transform:scaleY(2.4);}}
 @keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5);}70%{box-shadow:0 0 0 16px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes blink{0%,80%,100%{opacity:.2;}40%{opacity:1;}}
+@keyframes dotPop{from{width:0;opacity:0;}to{width:18px;opacity:1;}}
 </style>
 </head>
 <body>
-
 <div id="toast"></div>
 
-<!-- ══════ AUTH SCREEN ══════ -->
+<!-- ══════ AUTH ══════ -->
 <div id="authScreen">
   <div class="auth-logo">Tell<span>Back</span></div>
-  <div class="auth-sub">Voice & video messages<br>for people you actually know.</div>
+  <div class="auth-sub">Voice messages for people<br>you actually know.</div>
   <div class="auth-card">
 
-    <!-- Step 1: Phone number -->
+    <!-- Step 1: Phone -->
     <div class="auth-step active" id="authStep1">
       <div class="auth-label">Welcome</div>
       <div class="auth-title">Enter your number</div>
       <div class="auth-desc">We'll send a verification code via SMS.</div>
-      <div style="font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;margin-bottom:6px;">FORMAT: +1 555 000 0000</div>
-      <input type="tel" id="phoneInput" placeholder="+1 555 000 0000" style="margin-top:0;font-size:18px;width:100%;padding:14px 16px;border-radius:14px;letter-spacing:.5px;" maxlength="20">
-      <div style="font-size:11px;color:var(--sub);margin-top:12px;margin-bottom:4px;font-family:'Syne',sans-serif;font-weight:600;" id="recaptchaLabel">Complete the check below, then tap Send Code</div>
-      <div id="recaptcha-container" style="margin-bottom:4px;"></div>
+      <div class="fmt-hint">FORMAT: +1 555 000 0000</div>
+      <input type="tel" id="phoneInput" placeholder="+1 555 000 0000" style="margin-top:0;font-size:18px;padding:14px 16px;" maxlength="20">
+      <div class="recaptcha-hint" id="recaptchaHint" style="margin-top:12px;">Enter your number above, then complete the check below</div>
+      <div id="recaptcha-container"></div>
       <div class="auth-error" id="authError1"></div>
-      <button class="app-button" id="sendCodeBtn" onclick="sendCode()" style="margin-top:16px;">Send Code</button>
+      <button class="app-button" id="sendCodeBtn" onclick="sendCode()" style="margin-top:8px;">Send Code →</button>
     </div>
 
     <!-- Step 2: OTP -->
@@ -272,11 +240,11 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
         <input class="otp-input" maxlength="1" type="tel" id="otp5">
       </div>
       <div class="auth-error" id="authError2"></div>
-      <button class="app-button" id="verifyBtn" onclick="verifyCode()" style="margin-top:4px;">Verify</button>
+      <button class="app-button" id="verifyBtn" onclick="verifyCode()">Verify</button>
       <div class="auth-back" onclick="goBackToStep1()">← Change number</div>
     </div>
 
-    <!-- Step 3: Display name -->
+    <!-- Step 3: Name -->
     <div class="auth-step" id="authStep3">
       <div class="auth-label">Almost done</div>
       <div class="auth-title">What's your name?</div>
@@ -289,13 +257,13 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
   </div>
 </div>
 
-<!-- ══════ MAIN APP ══════ -->
+<!-- ══════ APP ══════ -->
 <div id="appRoot" class="hidden">
 
 <header>
   <div class="header-logo">Tell<span>Back</span></div>
   <div class="header-right">
-    <div class="header-badge" id="headerBadge">Voice</div>
+    <span class="status-dot-sm" id="headerStatusDot" style="background:#22c55e;"></span>
     <div class="header-user" id="headerUser"></div>
   </div>
 </header>
@@ -306,39 +274,33 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
     <div class="card-title">Send To <span class="card-title-right" id="selectedLabel">None selected</span></div>
     <div class="send-to-scroll" id="speedSend"></div>
   </div>
-  <div class="home-tabs">
-    <button class="htab active" id="modeVoice" onclick="setMode('voice')"><span class="htab-icon">🎙</span>Voice</button>
-    <button class="htab" id="modeVideo" onclick="setMode('video')"><span class="htab-icon">📹</span>VideoTell</button>
-  </div>
 
-  <!-- VOICE PANEL -->
-  <div class="tab-panel active" id="voicePanel">
+  <div class="card">
+    <div class="card-title" id="voiceChatTitle">Voice Messages</div>
     <div class="record-wrap">
       <button id="sendBtn">🎙</button>
-      <div id="waveform"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
+      <!-- Live waveform -->
+      <div class="waveform-wrap" id="waveformWrap">
+        <div class="wv-bar" id="wvb0" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb1" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb2" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb3" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb4" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb5" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb6" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb7" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb8" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb9" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb10" style="height:8px;"></div>
+        <div class="wv-bar" id="wvb11" style="height:8px;"></div>
+      </div>
       <div class="record-hint" id="recordHint">Hold to Talk</div>
-      <div id="transcribingIndicator" class="transcribing hidden"><div class="dot-anim"><span></span><span></span><span></span></div>Transcribing…</div>
+      <div id="transcribingIndicator" class="transcribing hidden">
+        <div class="dot-anim"><span></span><span></span><span></span></div>Transcribing…
+      </div>
     </div>
-    <div class="card">
-      <div class="card-title" id="voiceChatTitle">Voice Messages</div>
-      <div class="chat-history" id="chatHistory"><div class="empty"><div class="emoji">💬</div>Select someone above to see messages</div></div>
-    </div>
-  </div>
-
-  <!-- VIDEOTELL PANEL -->
-  <div class="tab-panel" id="videoPanel">
-    <div class="card camera-card" id="videoSection">
-      <video id="cameraPreview" autoplay muted playsinline></video>
-      <div class="camera-overlay" id="cameraControls"></div>
-    </div>
-    <div class="record-wrap">
-      <button id="sendBtnVideo">📹</button>
-      <div id="waveformVideo"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
-      <div class="record-hint" id="recordHintVideo">Hold to Record</div>
-    </div>
-    <div class="card">
-      <div class="card-title">VideoTell History <span class="card-title-right" id="vtTarget">No contact selected</span></div>
-      <div class="chat-history" id="videoHistory"><div class="empty"><div class="emoji">📹</div>Select someone above to see messages</div></div>
+    <div class="chat-history" id="chatHistory">
+      <div class="empty"><div class="emoji">💬</div>Select someone above to see messages</div>
     </div>
   </div>
 </div>
@@ -348,7 +310,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
   <div class="card">
     <div class="card-title">Your Friends</div>
     <div id="friendsList"></div>
-    <div class="empty hidden" id="friendsEmpty"><div class="emoji">👤</div>No friends yet — invite someone below</div>
+    <div class="empty hidden" id="friendsEmpty"><div class="emoji">👤</div>No friends yet</div>
   </div>
   <button class="app-button" onclick="showAddFriendModal()">＋ Add Friend by Phone</button>
 </div>
@@ -371,16 +333,42 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
 
 <!-- SETTINGS -->
 <div class="container subpage" id="settingsPage">
+
+  <!-- Status -->
+  <div class="card">
+    <div class="card-title">My Status</div>
+    <div class="status-picker" id="statusPicker">
+      <div class="status-opt active" id="sopt-online" onclick="setStatus('online')">
+        <span class="status-dot s-online"></span>Online
+      </div>
+      <div class="status-opt" id="sopt-away" onclick="setStatus('away')">
+        <span class="status-dot s-away"></span>Away
+      </div>
+      <div class="status-opt" id="sopt-busy" onclick="setStatus('busy')">
+        <span class="status-dot s-busy"></span>Busy
+      </div>
+      <div class="status-opt" id="sopt-offline" onclick="setStatus('offline')">
+        <span class="status-dot s-offline"></span>Offline
+      </div>
+    </div>
+  </div>
+
+  <!-- Account -->
   <div class="card">
     <div class="card-title">Account</div>
     <div class="setting-row">
-      <div><div class="setting-label" id="settingPhone">Phone</div><div class="setting-desc">Your verified number</div></div>
+      <div><div class="setting-label" id="settingPhone">—</div><div class="setting-desc">Your verified number</div></div>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label" id="settingName">—</div><div class="setting-desc">Your display name</div></div>
     </div>
     <div class="setting-row">
       <div><div class="setting-label">Sign Out</div></div>
       <button class="app-button danger" style="width:auto;padding:8px 14px;margin:0;font-size:13px;" onclick="signOutUser()">Sign Out</button>
     </div>
   </div>
+
+  <!-- Preferences -->
   <div class="card">
     <div class="card-title">Preferences</div>
     <div class="setting-row">
@@ -388,20 +376,15 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
       <label class="toggle"><input type="checkbox" id="darkToggle" onchange="toggleDark(this)"><span class="slider"></span></label>
     </div>
     <div class="setting-row">
-      <div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath voice messages</div></div>
+      <div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div>
       <label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="saveSettings()"><span class="slider"></span></label>
     </div>
     <div class="setting-row">
-      <div><div class="setting-label">Auto-Delete Voice (24h)</div><div class="setting-desc">Unpinned voice messages removed after 24h</div></div>
+      <div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div>
       <label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="saveSettings()"><span class="slider"></span></label>
     </div>
   </div>
-  <div class="card">
-    <div class="card-title">Storage</div>
-    <div class="setting-row">
-      <div><div class="setting-label" id="storageInfo">Calculating…</div><div class="setting-desc">Local video storage (IndexedDB)</div></div>
-    </div>
-  </div>
+
   <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.5px;">TELLBACK v2.0 • FIREBASE</div>
 </div>
 
@@ -420,9 +403,9 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
   <div class="modal">
     <div class="modal-handle"></div>
     <h3>Add Friend</h3>
-    <p style="font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:4px;">Enter their phone number. If they're on TellBack, they'll be added. If not, they'll get an SMS invite.</p>
-    <div style="font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.5px;margin-top:10px;margin-bottom:4px;">FORMAT: +1 555 000 0000</div>
-    <input type="tel" id="friendPhoneInput" placeholder="+1 555 000 0000" style="margin-top:0;font-size:18px;width:100%;padding:14px 16px;border-radius:14px;letter-spacing:.5px;" maxlength="20">
+    <p style="font-size:13px;color:var(--sub);line-height:1.5;">Enter their phone number. If they're on TellBack they'll be added instantly. If not, they'll get an SMS invite.</p>
+    <div class="fmt-hint" style="margin-top:12px;">FORMAT: +1 555 000 0000</div>
+    <input type="tel" id="friendPhoneInput" placeholder="+1 555 000 0000" style="margin-top:4px;font-size:16px;padding:13px 14px;" maxlength="20">
     <input type="text" id="friendNicknameInput" placeholder="Nickname (optional)">
     <div class="auth-error" id="addFriendError"></div>
     <div class="modal-actions">
@@ -432,98 +415,59 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);}
   </div>
 </div>
 
-<div class="modal-overlay" id="clearDataModal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <h3>Clear Local Data?</h3>
-    <p style="font-size:13px;color:var(--sub);line-height:1.6;">This removes locally stored video messages. Your account and voice messages in Firestore are not affected.</p>
-    <div class="modal-actions">
-      <button class="app-button secondary" onclick="closeModal('clearDataModal')">Cancel</button>
-      <button class="app-button danger" onclick="confirmClearData()">Clear</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
-import { initializeApp }            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut }
-                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy,
-         onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs }
-                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where,
+         orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs }
+                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage }
-                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+                               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 
-/* ══════════════════════════════════
-   FIREBASE INIT
-══════════════════════════════════ */
+/* ── FIREBASE ── */
 const firebaseConfig = {
-  apiKey: "AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",
-  authDomain: "tellback-68a28.firebaseapp.com",
-  projectId: "tellback-68a28",
-  storageBucket: "tellback-68a28.firebasestorage.app",
-  messagingSenderId: "847309476601",
-  appId: "1:847309476601:web:e2ce35491762b7012b4828"
+  apiKey:"AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",
+  authDomain:"tellback-68a28.firebaseapp.com",
+  projectId:"tellback-68a28",
+  storageBucket:"tellback-68a28.firebasestorage.app",
+  messagingSenderId:"847309476601",
+  appId:"1:847309476601:web:e2ce35491762b7012b4828"
 };
-const app       = initializeApp(firebaseConfig);
-const auth      = getAuth(app);
-const db        = getFirestore(app);
-const messaging = getMessaging(app);
+const fbApp     = initializeApp(firebaseConfig);
+const auth      = getAuth(fbApp);
+const db        = getFirestore(fbApp);
+const messaging = getMessaging(fbApp);
 const VAPID_KEY = 'BJcJqLGGDoK9_9JMPKptqqb8iflEVZVt4WL-rllHwWmA7WX0j8nW52KnHSdacOnrFq5H5Cqv0l9KtbxE2LH71ng';
 
-/* ══════════════════════════════════
-   INDEXED DB (local video storage)
-══════════════════════════════════ */
-const DB_NAME='TellBackDB',DB_VER=1,STORE='blobs';
-let idb=null;
-function openIDB(){
-  return new Promise((res,rej)=>{
-    const r=indexedDB.open(DB_NAME,DB_VER);
-    r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE);};
-    r.onsuccess=e=>{idb=e.target.result;res(idb);};
-    r.onerror=()=>rej(r.error);
-  });
-}
-function idbSet(k,v){return new Promise((res,rej)=>{const tx=idb.transaction(STORE,'readwrite');tx.onabort=()=>rej(tx.error||new Error('aborted'));tx.onerror=()=>rej(tx.error);tx.oncomplete=()=>res();tx.objectStore(STORE).put(v,k);});}
-function idbGet(k){return new Promise((res,rej)=>{const tx=idb.transaction(STORE,'readonly');const r=tx.objectStore(STORE).get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);});}
-function idbDel(k){return new Promise((res,rej)=>{const tx=idb.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
-function idbDelAll(){return new Promise((res,rej)=>{const tx=idb.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});}
-async function idbSize(){return new Promise(res=>{let t=0;const tx=idb.transaction(STORE,'readonly');tx.objectStore(STORE).openCursor().onsuccess=e=>{const c=e.target.result;if(c){t+=c.value.size||0;c.continue();}else res(t);};});}
+/* ── STATE ── */
+let currentUser=null, myPhone='', myName='', myStatus='online';
+let friends=[], groups=JSON.parse(localStorage.getItem('tb_groups')||'[]');
+let selectedTarget=null;
+let isRecording=false;
+let msgListeners={};
+let msgCache={};
+let confirmResult=null, recaptchaVerifier=null;
+let analyserNode=null, waveAnimId=null;
 
-/* ══════════════════════════════════
-   STATE
-══════════════════════════════════ */
-let currentUser   = null;  // Firebase Auth user
-let myPhone       = '';    // normalized e.g. +15551234567
-let myName        = '';
-let friends       = [];    // [{uid, phone, name, nickname}]
-let selectedTarget= null;  // {uid, phone, name}
-let currentMode   = 'voice';
-let cameraStream  = null, availableCameras=[], currentCamIdx=0;
-let isRecording   = false;
-let msgListeners  = {};    // uid → unsubscribe fn
+const STATUS_COLORS={online:'#22c55e',away:'#f59e0b',busy:'#ef4444',offline:'#94a3b8'};
 
-const darkToggle      = ()=>document.getElementById('darkToggle');
-const transcriptToggle= ()=>document.getElementById('transcriptToggle');
-const autoDeleteToggle= ()=>document.getElementById('autoDeleteToggle');
-
-/* ══════════════════════════════════
-   SETTINGS (localStorage)
-══════════════════════════════════ */
+/* ── SETTINGS ── */
+const dT=()=>document.getElementById('darkToggle');
+const tT=()=>document.getElementById('transcriptToggle');
+const aT=()=>document.getElementById('autoDeleteToggle');
 function saveSettings(){
-  localStorage.setItem('tb_dark',     darkToggle().checked);
-  localStorage.setItem('tb_transcript',transcriptToggle().checked);
-  localStorage.setItem('tb_autodelete',autoDeleteToggle().checked);
+  localStorage.setItem('tb_dark',dT().checked);
+  localStorage.setItem('tb_transcript',tT().checked);
+  localStorage.setItem('tb_autodelete',aT().checked);
 }
 function loadSettings(){
-  if(localStorage.getItem('tb_dark')==='true'){document.body.classList.add('dark');darkToggle().checked=true;updateThemeColor();}
-  transcriptToggle().checked = localStorage.getItem('tb_transcript')!=='false';
-  autoDeleteToggle().checked = localStorage.getItem('tb_autodelete')!=='false';
+  if(localStorage.getItem('tb_dark')==='true'){document.body.classList.add('dark');dT().checked=true;updateThemeColor();}
+  tT().checked=localStorage.getItem('tb_transcript')!=='false';
+  aT().checked=localStorage.getItem('tb_autodelete')!=='false';
 }
 
-/* ══════════════════════════════════
-   TOAST / THEME
-══════════════════════════════════ */
+/* ── TOAST / THEME ── */
 let toastTimer=null;
 function showToast(msg,dur=2400){
   const t=document.getElementById('toast');
@@ -531,23 +475,52 @@ function showToast(msg,dur=2400){
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),dur);
 }
 function updateThemeColor(){
-  document.getElementById('themeColorMeta').content=document.body.classList.contains('dark')?'#1a1926':'#ffffff';
+  document.getElementById('themeColorMeta').content=document.body.classList.contains('dark')?'#1a1926':'#2563eb';
 }
 function toggleDark(cb){document.body.classList.toggle('dark',cb.checked);updateThemeColor();saveSettings();}
 
-/* ══════════════════════════════════
-   PHONE NORMALIZER
-══════════════════════════════════ */
-function normalizePhone(cc, num){
-  const digits = num.replace(/\D/g,'');
-  return cc.replace(/\D/g,'').startsWith('') ? '+'+cc.replace(/\D/g,'')+digits : '+1'+digits;
+/* ── PHONE NORMALIZE ── */
+function normalizePhone(raw){
+  const digits=raw.replace(/[^\d+]/g,'');
+  return digits.startsWith('+')?digits:'+1'+digits;
 }
 
-/* ══════════════════════════════════
-   AUTH — STEP 1: Send SMS code
-══════════════════════════════════ */
-let confirmResult = null;
-let recaptchaVerifier = null;
+/* ── AUTH STEP 1: Send code ── */
+async function sendCode(){
+  const raw=document.getElementById('phoneInput').value.trim();
+  const errEl=document.getElementById('authError1');
+  errEl.textContent='';
+  if(!raw){errEl.textContent='Please enter your phone number first.';return;}
+  const phone=normalizePhone(raw);
+  if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
+  showToast('✅ Number saved — complete the check below');
+}
+
+/* ── AUTH STEP 2: Verify OTP ── */
+document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{
+  inp.addEventListener('input',()=>{
+    if(inp.value.length===1&&i<arr.length-1)arr[i+1].focus();
+    if(inp.value.length===1&&i===arr.length-1)verifyCode();
+  });
+  inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)arr[i-1].focus();});
+});
+
+async function verifyCode(){
+  const code=[0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');
+  const errEl=document.getElementById('authError2');
+  errEl.textContent='';
+  if(code.length<6){errEl.textContent='Enter all 6 digits.';return;}
+  const btn=document.getElementById('verifyBtn');
+  btn.disabled=true;btn.textContent='Verifying…';
+  try{
+    await confirmResult.confirm(code);
+  }catch(e){
+    console.error(e);
+    errEl.textContent='Incorrect code. Please try again.';
+    [0,1,2,3,4,5].forEach(i=>document.getElementById('otp'+i).value='');
+    document.getElementById('otp0').focus();
+  }finally{btn.disabled=false;btn.textContent='Verify';}
+}
 
 function goBackToStep1(){
   document.getElementById('authStep2').classList.remove('active');
@@ -555,234 +528,189 @@ function goBackToStep1(){
   document.getElementById('authError2').textContent='';
 }
 
-async function sendCode(){
-  // Just validates the number — actual sending happens in reCAPTCHA callback
-  const raw = document.getElementById('phoneInput').value.trim();
-  const errEl = document.getElementById('authError1');
-  errEl.textContent='';
-  if(!raw){errEl.textContent='Please enter your phone number first.';return;}
-  const digits = raw.replace(/[^\d+]/g,'');
-  const phone  = digits.startsWith('+') ? digits : '+1'+digits;
-  if(phone.replace(/\D/g,'').length < 8){errEl.textContent='Number looks too short — include country code e.g. +1 555 000 0000';return;}
-  errEl.textContent='';
-  showToast('✅ Number saved — now complete the check below');
-}
-
-/* ── OTP input auto-advance ── */
-document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{
-  inp.addEventListener('input',()=>{
-    if(inp.value.length===1&&i<arr.length-1) arr[i+1].focus();
-    if(inp.value.length===1&&i===arr.length-1) verifyCode();
-  });
-  inp.addEventListener('keydown',e=>{
-    if(e.key==='Backspace'&&!inp.value&&i>0) arr[i-1].focus();
-  });
-});
-
-async function verifyCode(){
-  const code = [0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');
-  const errEl = document.getElementById('authError2');
-  errEl.textContent='';
-  if(code.length<6){errEl.textContent='Enter all 6 digits.';return;}
-  const btn = document.getElementById('verifyBtn');
-  btn.disabled=true; btn.textContent='Verifying…';
-  try{
-    await confirmResult.confirm(code);
-    // onAuthStateChanged will handle the rest
-  }catch(e){
-    console.error(e);
-    errEl.textContent='Incorrect code. Please try again.';
-    [0,1,2,3,4,5].forEach(i=>document.getElementById('otp'+i).value='');
-    document.getElementById('otp0').focus();
-  }finally{
-    btn.disabled=false; btn.textContent='Verify';
-  }
-}
-
-/* ── Step 3: Save display name ── */
+/* ── AUTH STEP 3: Save name ── */
 async function saveDisplayName(){
-  const name  = document.getElementById('displayNameInput').value.trim();
-  const errEl = document.getElementById('authError3');
+  const name=document.getElementById('displayNameInput').value.trim();
+  const errEl=document.getElementById('authError3');
   errEl.textContent='';
   if(!name){errEl.textContent='Please enter your name.';return;}
   try{
     await setDoc(doc(db,'users',currentUser.uid),{
-      uid:currentUser.uid,
-      phone:currentUser.phoneNumber,
-      name:name,
-      createdAt:serverTimestamp()
+      uid:currentUser.uid,phone:currentUser.phoneNumber,
+      name,status:'online',createdAt:serverTimestamp()
     },{merge:true});
-    myName=name;
-    launchApp();
-  }catch(e){
-    console.error(e);
-    errEl.textContent='Could not save. Please try again.';
-  }
+    myName=name;launchApp();
+  }catch(e){errEl.textContent='Could not save. Try again.';}
 }
 
-/* ══════════════════════════════════
-   AUTH STATE OBSERVER
-══════════════════════════════════ */
-onAuthStateChanged(auth, async user=>{
+/* ── AUTH STATE ── */
+onAuthStateChanged(auth,async user=>{
   if(user){
-    currentUser=user;
-    myPhone=user.phoneNumber||'';
-    // Check if user has a display name in Firestore
-    const snap = await getDoc(doc(db,'users',user.uid));
+    currentUser=user;myPhone=user.phoneNumber||'';
+    const snap=await getDoc(doc(db,'users',user.uid));
     if(snap.exists()&&snap.data().name){
       myName=snap.data().name;
+      myStatus=snap.data().status||'online';
       launchApp();
     }else{
-      // Need display name
       document.getElementById('authStep1').classList.remove('active');
       document.getElementById('authStep2').classList.remove('active');
       document.getElementById('authStep3').classList.add('active');
     }
   }else{
     currentUser=null;
-    // Show auth screen
     document.getElementById('authScreen').classList.remove('hidden');
     document.getElementById('appRoot').classList.add('hidden');
   }
 });
 
-/* ══════════════════════════════════
-   LAUNCH APP
-══════════════════════════════════ */
+/* ── SIGN OUT ── */
+async function signOutUser(){
+  // Set offline before signing out
+  if(currentUser){
+    await setDoc(doc(db,'users',currentUser.uid),{status:'offline'},{merge:true}).catch(()=>{});
+  }
+  Object.values(msgListeners).forEach(u=>u());msgListeners={};
+  await signOut(auth);
+}
+
+/* ── LAUNCH APP ── */
 async function launchApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appRoot').classList.remove('hidden');
   loadSettings();
   document.getElementById('headerUser').textContent=myName;
   document.getElementById('settingPhone').textContent=myPhone;
+  document.getElementById('settingName').textContent=myName;
+  updateStatusUI(myStatus);
+  // Set online status
+  await setDoc(doc(db,'users',currentUser.uid),{status:'online'},{merge:true}).catch(()=>{});
   await loadFriends();
-  renderGroups();
-  renderSpeedSend();
-  renderChat();
-  renderVideoHistory();
-  bindRecordBtn(document.getElementById('sendBtn'),document.getElementById('waveform'),document.getElementById('recordHint'),'voice');
-  bindRecordBtn(document.getElementById('sendBtnVideo'),document.getElementById('waveformVideo'),document.getElementById('recordHintVideo'),'video');
-  document.getElementById('waveformVideo').style.cssText='display:none;align-items:center;justify-content:center;gap:3px;height:24px;';
+  renderGroups();renderSpeedSend();renderChat();
+  bindRecordBtn();
   document.querySelectorAll('.app-button').forEach(btn=>btn.addEventListener('click',e=>addRipple(btn,e)));
   setInterval(runAutoDelete,60000);
-  // Register service worker + push notifications
   await initPushNotifications();
-  // Listen for incoming notifications
   listenForNotifications();
-  // Listen for foreground messages
-  onMessage(messaging, payload=>{
-    const from = payload.data?.senderName || 'Someone';
-    const type = payload.data?.type || 'voice';
-    showToast('📩 New '+type+' message from '+from);
-    // Refresh messages if conversation is open
-    const senderUid = payload.data?.senderUid;
-    if(senderUid && selectedTarget && selectedTarget.uid===senderUid){
-      renderChat(); renderVideoHistory();
-    }
+  onMessage(messaging,payload=>{
+    const from=payload.data?.senderName||'Someone';
+    showToast('📩 New voice message from '+from);
+    if(selectedTarget&&selectedTarget.uid===payload.data?.senderUid){renderChat();}
   });
 }
 
-async function initPushNotifications(){
-  try{
-    // Register service worker
-    if(!('serviceWorker' in navigator)){console.warn('SW not supported');return;}
-    const reg = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-    // Ask permission
-    const permission = await Notification.requestPermission();
-    if(permission !== 'granted'){console.warn('Notification permission denied');return;}
-    // Get FCM token
-    const token = await getToken(messaging,{vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
-    if(token){
-      // Save token to Firestore so others can send push to this device
-      await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});
-      console.log('FCM token saved');
-    }
-  }catch(e){
-    console.warn('Push notification setup failed:',e);
+/* ── STATUS ── */
+async function setStatus(s){
+  myStatus=s;
+  updateStatusUI(s);
+  if(currentUser){
+    await setDoc(doc(db,'users',currentUser.uid),{status:s},{merge:true}).catch(()=>{});
   }
 }
-
-/* ══════════════════════════════════
-   SIGN OUT
-══════════════════════════════════ */
-async function signOutUser(){
-  // Unsubscribe all listeners
-  Object.values(msgListeners).forEach(unsub=>unsub());
-  msgListeners={};
-  stopCameraPreview();
-  await signOut(auth);
+function updateStatusUI(s){
+  const color=STATUS_COLORS[s]||STATUS_COLORS.online;
+  document.getElementById('headerStatusDot').style.background=color;
+  document.querySelectorAll('.status-opt').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('sopt-'+s);
+  if(el)el.classList.add('active');
 }
 
-/* ══════════════════════════════════
-   FRIENDS — stored in Firestore
-   /users/{uid}/friends/{friendUid}
-══════════════════════════════════ */
+/* ── PUSH NOTIFICATIONS ── */
+async function initPushNotifications(){
+  try{
+    if(!('serviceWorker' in navigator))return;
+    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+    const permission=await Notification.requestPermission();
+    if(permission!=='granted'){console.warn('Notifications denied');return;}
+    const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+    if(token){
+      await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});
+    }
+  }catch(e){console.warn('Push setup failed:',e);}
+}
+
+function listenForNotifications(){
+  if(!currentUser)return;
+  const q=query(collection(db,'notifications'),where('toUid','==',currentUser.uid),where('read','==',false));
+  onSnapshot(q,snap=>{
+    snap.docChanges().forEach(async change=>{
+      if(change.type==='added'){
+        const n=change.doc.data();
+        if(document.visibilityState==='visible'){
+          showToast('📩 New voice message from '+(n.fromName||'someone'));
+        }else if(Notification.permission==='granted'){
+          new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});
+        }
+        await updateDoc(doc(db,'notifications',change.doc.id),{read:true}).catch(()=>{});
+        const dot=document.getElementById('dot-'+n.fromUid);
+        if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');
+        if(selectedTarget&&selectedTarget.uid===n.fromUid){renderChat();}
+      }
+    });
+  });
+}
+
+async function sendPushToUser(recipientUid){
+  try{
+    await addDoc(collection(db,'notifications'),{
+      toUid:recipientUid,fromUid:currentUser.uid,fromName:myName,
+      sentAt:serverTimestamp(),read:false
+    });
+  }catch(e){console.warn('Push write failed:',e);}
+}
+
+/* ── FRIENDS ── */
 async function loadFriends(){
   friends=[];
-  const snap = await getDocs(collection(db,'users',currentUser.uid,'friends'));
+  const snap=await getDocs(collection(db,'users',currentUser.uid,'friends'));
   snap.forEach(d=>friends.push({...d.data(),uid:d.id}));
-  renderFriends();
-  renderSpeedSend();
+  // Subscribe to friend status updates
+  friends.forEach(f=>subscribeToFriendStatus(f.uid));
+  renderFriends();renderSpeedSend();
+}
+
+function subscribeToFriendStatus(friendUid){
+  onSnapshot(doc(db,'users',friendUid),snap=>{
+    if(!snap.exists())return;
+    const data=snap.data();
+    const f=friends.find(x=>x.uid===friendUid);
+    if(f){f.status=data.status||'offline';}
+    renderSpeedSend();
+  });
 }
 
 async function confirmAddFriend(){
-  const raw      = document.getElementById('friendPhoneInput').value.trim();
-  const nickname = document.getElementById('friendNicknameInput').value.trim();
-  const errEl    = document.getElementById('addFriendError');
-  const btn      = document.getElementById('addFriendBtn');
+  const raw=document.getElementById('friendPhoneInput').value.trim();
+  const nickname=document.getElementById('friendNicknameInput').value.trim();
+  const errEl=document.getElementById('addFriendError');
+  const btn=document.getElementById('addFriendBtn');
   errEl.textContent='';
   if(!raw){errEl.textContent='Enter a phone number.';return;}
-  const digits = raw.replace(/[^\d+]/g,'');
-  const phone = digits.startsWith('+') ? digits : '+1'+digits;
+  const phone=normalizePhone(raw);
   if(phone===myPhone){errEl.textContent="That's your own number!";return;}
-  btn.disabled=true; btn.textContent='Adding…';
+  btn.disabled=true;btn.textContent='Adding…';
   try{
-    // Look up by phone in Firestore
-    const usersRef = collection(db,'users');
-    const q = query(usersRef, where('phone','==',phone));
-    const snap = await getDocs(q);
-
+    const q=query(collection(db,'users'),where('phone','==',phone));
+    const snap=await getDocs(q);
     if(!snap.empty){
-      // User exists on TellBack
-      const friendData = snap.docs[0].data();
-      const friendUid  = snap.docs[0].id;
-      const displayName = nickname||friendData.name;
-      // Save to my friends list
-      await setDoc(doc(db,'users',currentUser.uid,'friends',friendUid),{
-        uid:friendUid, phone:friendData.phone, name:friendData.name,
-        nickname:nickname||'', addedAt:serverTimestamp()
-      });
-      // They get me in their friends list too
-      await setDoc(doc(db,'users',friendUid,'friends',currentUser.uid),{
-        uid:currentUser.uid, phone:myPhone, name:myName,
-        nickname:'', addedAt:serverTimestamp()
-      });
-      friends.push({uid:friendUid,phone:friendData.phone,name:friendData.name,nickname:nickname||''});
-      closeModal('addFriendModal');
-      renderFriends(); renderSpeedSend();
-      showToast('✅ '+displayName+' added!');
+      const fd=snap.docs[0].data();const fuid=snap.docs[0].id;
+      await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone,name:fd.name,nickname:nickname||'',addedAt:serverTimestamp()});
+      await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});
+      friends.push({uid:fuid,phone:fd.phone,name:fd.name,nickname:nickname||''});
+      subscribeToFriendStatus(fuid);
+      closeModal('addFriendModal');renderFriends();renderSpeedSend();
+      showToast('✅ '+(nickname||fd.name)+' added!');
     }else{
-      // Not on TellBack yet — send SMS invite via SMS link
-      const smsBody = encodeURIComponent(myName+' invited you to TellBack — voice & video messages for people you know. Download: https://tellback.app');
-      const smsLink = 'sms:'+phone+'?body='+smsBody;
-      window.open(smsLink,'_blank');
-      // Save as pending friend
-      const pendingId = 'pending_'+phone.replace(/\D/g,'');
-      await setDoc(doc(db,'users',currentUser.uid,'friends',pendingId),{
-        uid:pendingId, phone:phone, name:nickname||phone, nickname:nickname||'',
-        pending:true, addedAt:serverTimestamp()
-      });
-      friends.push({uid:pendingId,phone,name:nickname||phone,nickname:nickname||'',pending:true});
-      closeModal('addFriendModal');
-      renderFriends(); renderSpeedSend();
+      const smsBody=encodeURIComponent(myName+' invited you to TellBack — voice messages for people you know: https://hewsonaiden9-sudo.github.io/tellback');
+      window.open('sms:'+phone+'?body='+smsBody,'_blank');
+      const pid='pending_'+phone.replace(/\D/g,'');
+      await setDoc(doc(db,'users',currentUser.uid,'friends',pid),{uid:pid,phone,name:nickname||phone,nickname:nickname||'',pending:true,addedAt:serverTimestamp()});
+      friends.push({uid:pid,phone,name:nickname||phone,nickname:nickname||'',pending:true});
+      closeModal('addFriendModal');renderFriends();renderSpeedSend();
       showToast('📲 Invite sent to '+phone);
     }
-  }catch(e){
-    console.error(e);
-    errEl.textContent='Error: '+e.message;
-  }finally{
-    btn.disabled=false; btn.textContent='Add';
-  }
+  }catch(e){errEl.textContent='Error: '+e.message;}
+  finally{btn.disabled=false;btn.textContent='Add';}
 }
 
 function showAddFriendModal(){
@@ -797,248 +725,135 @@ async function removeFriend(uid){
   if(!confirm('Remove this friend?'))return;
   await deleteDoc(doc(db,'users',currentUser.uid,'friends',uid));
   friends=friends.filter(f=>f.uid!==uid);
-  if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();renderVideoHistory();}
-  // Unsubscribe listener
+  if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();}
   if(msgListeners[uid]){msgListeners[uid]();delete msgListeners[uid];}
-  renderFriends(); renderSpeedSend();
+  renderFriends();renderSpeedSend();
 }
 
 function renderFriends(){
-  const list  = document.getElementById('friendsList');
-  const empty = document.getElementById('friendsEmpty');
+  const list=document.getElementById('friendsList');
+  const empty=document.getElementById('friendsEmpty');
   list.innerHTML='';
   if(!friends.length){empty.classList.remove('hidden');return;}
   empty.classList.add('hidden');
   friends.forEach((f,i)=>{
+    const name=f.nickname||f.name;
     const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
-    const label = (f.nickname||f.name)+(f.pending?' ⏳':'');
-    div.innerHTML=`<span>${label} <small style="opacity:.4;font-size:11px;">${f.phone}</small></span>
-      <div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend('${f.uid}')">Remove</button></div>`;
+    const sc=STATUS_COLORS[f.status||'offline'];
+    div.innerHTML=`<span style="display:flex;align-items:center;gap:8px;">
+      <span style="width:9px;height:9px;border-radius:50%;background:${sc};flex-shrink:0;display:inline-block;"></span>
+      ${name}${f.pending?' ⏳':''} <small style="opacity:.4;font-size:11px;">${f.phone}</small>
+    </span>
+    <div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend('${f.uid}')">Remove</button></div>`;
     list.appendChild(div);
   });
 }
-window._rmFriend = removeFriend;
+window._rmFriend=removeFriend;
 
-/* ══════════════════════════════════
-   SPEED SEND CHIPS
-══════════════════════════════════ */
-function getInitials(name){return name.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
+/* ── SPEED SEND ── */
+function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
 
 function renderSpeedSend(){
   const box=document.getElementById('speedSend');
   box.innerHTML='';
-  const allContacts=[...friends,...(groups||[]).map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members}))];
-  if(!allContacts.length){
-    box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">👋</div>Add a friend to get started</div>';
-    return;
-  }
-  allContacts.forEach((f,idx)=>{
+  const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true}))];
+  if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">👋</div>Add a friend to get started</div>';return;}
+  all.forEach((f,idx)=>{
     const name=f.nickname||f.name;
     const chip=document.createElement('div');
     chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');
     chip.style.animationDelay=idx*30+'ms';
+    const sc=STATUS_COLORS[f.status||'offline'];
     const avatar=f.isGroup?'👥':getInitials(name);
-    chip.innerHTML=`<div class="chip-avatar">${avatar}${!f.isGroup?`<span class="unread-dot" id="dot-${f.uid}"></span>`:''}</div><div class="chip-name">${name}</div>`;
+    chip.innerHTML=`<div class="chip-avatar">
+      ${avatar}
+      ${!f.isGroup?`<span class="unread-dot" id="dot-${f.uid}"></span><span class="chip-status" style="background:${sc};"></span>`:''}
+    </div>
+    <div class="chip-name">${name}</div>`;
     chip.onclick=()=>{
       selectedTarget=f;
-      renderSpeedSend();
-      updateVTTarget();
-      updateSelectedLabel();
+      renderSpeedSend();updateSelectedLabel();
       if(!f.isGroup)subscribeToMessages(f.uid);
       renderChat();
-      renderVideoHistory();
     };
     box.appendChild(chip);
   });
 }
-
 function updateSelectedLabel(){document.getElementById('selectedLabel').textContent=selectedTarget?(selectedTarget.nickname||selectedTarget.name):'None selected';}
-function updateVTTarget(){document.getElementById('vtTarget').textContent=selectedTarget?(selectedTarget.nickname||selectedTarget.name):'No contact selected';}
 
-/* ══════════════════════════════════
-   FIRESTORE MESSAGE LISTENER
-   /conversations/{convId}/messages/{msgId}
-   convId = sorted uid pair: uid1_uid2
-══════════════════════════════════ */
-// In-memory message cache: {[friendUid]: [msg,...]}
-let msgCache = {};
-
-function convId(uidA, uidB){ return [uidA,uidB].sort().join('_'); }
+/* ── MESSAGES ── */
+function convId(a,b){return[a,b].sort().join('_');}
 
 function subscribeToMessages(friendUid){
-  if(msgListeners[friendUid]) return; // already subscribed
-  const cid = convId(currentUser.uid, friendUid);
-  const q   = query(
-    collection(db,'conversations',cid,'messages'),
-    orderBy('sentAt','asc')
-  );
-  msgListeners[friendUid] = onSnapshot(q, snap=>{
-    const msgs=[];
-    snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));
+  if(msgListeners[friendUid])return;
+  const cid=convId(currentUser.uid,friendUid);
+  const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));
+  msgListeners[friendUid]=onSnapshot(q,snap=>{
+    const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));
     msgCache[friendUid]=msgs;
-    if(selectedTarget&&selectedTarget.uid===friendUid){
-      renderChat();
-      renderVideoHistory();
-    }
-    // Update unread dot if not selected
-    const hasnew = msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));
-    const dot = document.getElementById('dot-'+friendUid);
-    if(dot) dot.classList.toggle('show', hasnew&&!(selectedTarget&&selectedTarget.uid===friendUid));
-  });
-}
-
-/* Mark messages as read when viewing */
-/* ══════════════════════════════════
-   PUSH NOTIFICATIONS
-   Strategy: write notification request to Firestore.
-   Recipient's service worker picks it up via onSnapshot when app is open.
-   For background, FCM delivers via stored token.
-══════════════════════════════════ */
-async function sendPushToUser(recipientUid, msgType){
-  try{
-    // Write a notification doc — recipient's client cleans it up after reading
-    await addDoc(collection(db,'notifications'),{
-      toUid: recipientUid,
-      fromUid: currentUser.uid,
-      fromName: myName,
-      type: msgType,
-      sentAt: serverTimestamp(),
-      read: false
-    });
-  }catch(e){console.warn('Push queue write failed:',e);}
-}
-
-// Listen for incoming notification docs addressed to me
-function listenForNotifications(){
-  if(!currentUser)return;
-  const q = query(
-    collection(db,'notifications'),
-    where('toUid','==',currentUser.uid),
-    where('read','==',false)
-  );
-  onSnapshot(q, snap=>{
-    snap.docChanges().forEach(async change=>{
-      if(change.type==='added'){
-        const n = change.doc.data();
-        const isAppVisible = document.visibilityState==='visible';
-        if(isAppVisible){
-          showToast('📩 New '+n.type+' from '+(n.fromName||'someone'));
-        }else{
-          // Show browser notification
-          if(Notification.permission==='granted'){
-            new Notification('TellBack — new '+(n.type||'message'),{
-              body: (n.fromName||'Someone')+' sent you a '+(n.type||'message'),
-              icon: '/icon-192.png',
-              tag: 'tellback-'+n.fromUid
-            });
-          }
-        }
-        // Mark as read so we don't show it again
-        await updateDoc(doc(db,'notifications',change.doc.id),{read:true}).catch(()=>{});
-        // Refresh messages if conversation open
-        if(selectedTarget&&selectedTarget.uid===n.fromUid){
-          renderChat();renderVideoHistory();
-        }
-        // Flash unread dot
-        const dot=document.getElementById('dot-'+n.fromUid);
-        if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');
-      }
-    });
+    if(selectedTarget&&selectedTarget.uid===friendUid)renderChat();
+    const hasNew=msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));
+    const dot=document.getElementById('dot-'+friendUid);
+    if(dot)dot.classList.toggle('show',hasNew&&!(selectedTarget&&selectedTarget.uid===friendUid));
   });
 }
 
 async function markRead(friendUid){
-  const cid   = convId(currentUser.uid, friendUid);
-  const msgs  = msgCache[friendUid]||[];
-  const unread= msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));
-  for(const m of unread){
-    await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{
-      readBy: [...(m.readBy||[]), currentUser.uid]
-    }).catch(()=>{});
+  const cid=convId(currentUser.uid,friendUid);
+  const msgs=msgCache[friendUid]||[];
+  for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid))){
+    await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});
   }
 }
 
-/* ══════════════════════════════════
-   RENDER VOICE CHAT
-══════════════════════════════════ */
 function renderChat(){
-  const history = document.getElementById('chatHistory');
-  const title   = document.getElementById('voiceChatTitle');
+  const history=document.getElementById('chatHistory');
+  const title=document.getElementById('voiceChatTitle');
   history.innerHTML='';
-  if(!selectedTarget){
-    title.innerText='Voice Messages';
-    history.innerHTML='<div class="empty"><div class="emoji">💬</div>Select someone above</div>';
-    return;
-  }
-  title.innerText=(selectedTarget.nickname||selectedTarget.name);
-  const msgs = (msgCache[selectedTarget.uid]||[]).filter(m=>m.type==='voice');
-  if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">🎙</div>Hold the button to record!</div>';return;}
+  if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">💬</div>Select someone above</div>';return;}
+  title.innerText=selectedTarget.nickname||selectedTarget.name;
+  const msgs=msgCache[selectedTarget.uid]||[];
+  if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">🎙</div>Hold the button to record your first message!</div>';return;}
   const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
   sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));
   markRead(selectedTarget.uid);
+  // Scroll to bottom
+  setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);
 }
 
-/* ══════════════════════════════════
-   RENDER VIDEO HISTORY
-══════════════════════════════════ */
-function renderVideoHistory(){
-  const history=document.getElementById('videoHistory');
-  history.innerHTML='';
-  if(!selectedTarget){history.innerHTML='<div class="empty"><div class="emoji">📹</div>Select someone above</div>';return;}
-  const msgs=(msgCache[selectedTarget.uid]||[]).filter(m=>m.type==='video');
-  if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">📹</div>Hold the button to record!</div>';return;}
-  const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));
-}
-
-/* ══════════════════════════════════
-   BUILD BUBBLE
-══════════════════════════════════ */
 function buildBubble(msg,idx){
   const div=document.createElement('div');
-  const isOut = msg.senderUid===currentUser.uid;
+  const isOut=msg.senderUid===currentUser.uid;
   div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');
-  div.style.animationDelay=idx*45+'ms';
-  const type=msg.type||'voice';
+  div.style.animationDelay=idx*40+'ms';
 
   if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='📌';div.appendChild(pf);}
+
   const top=document.createElement('div');top.className='bubble-top';
   const ts=document.createElement('span');ts.className='bubble-ts';
-  ts.textContent=(msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp)||'';
-  const badge=document.createElement('span');badge.className='bubble-type '+type;
-  badge.textContent=type==='video'?'📹 VideoTell':'🎙 Voice';
+  ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';
+  const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='🎙 Voice';
   const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');
   dir.textContent=isOut?'You':(selectedTarget?selectedTarget.nickname||selectedTarget.name:'');
   top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);
 
-  // Media
-  const mediaSlot=document.createElement('div');mediaSlot.className='media-loading';mediaSlot.innerHTML='<span class="spin"></span> Loading…';
+  // Audio
+  const mediaSlot=document.createElement('div');mediaSlot.className='media-loading';
+  mediaSlot.innerHTML='<span class="spin"></span> Loading…';
   div.appendChild(mediaSlot);
 
-  if(type==='voice'&&msg.audioBase64){
-    // Voice stored in Firestore as base64
+  if(msg.audioBase64){
     const aud=document.createElement('audio');
-    aud.controls=true;aud.preload='auto';
-    aud.src=msg.audioBase64;
+    aud.controls=true;aud.preload='auto';aud.src=msg.audioBase64;
     mediaSlot.replaceWith(aud);
-  }else if(type==='video'){
-    // Video stored locally in IDB
-    idbGet(msg.localId||msg.id||msg.firestoreId).then(blob=>{
-      if(!blob){
-        mediaSlot.style.cssText='font-size:11px;color:var(--sub);padding:4px 0;';
-        mediaSlot.textContent=isOut?'📹 Sent (video stored locally)':'📹 Video — open on sender\'s device';
-        return;
-      }
-      const vid=document.createElement('video');
-      vid.className='msg-video';vid.controls=true;vid.preload='auto';
-      vid.src=URL.createObjectURL(blob);
-      mediaSlot.replaceWith(vid);
-    }).catch(()=>{mediaSlot.textContent='⚠️ Video not found locally';});
   }else{
-    mediaSlot.textContent='⚠️ No media';
+    mediaSlot.textContent='⚠️ No audio data';
   }
 
-  if(msg.transcript){const t=document.createElement('div');t.className='bubble-transcript';t.textContent='"'+msg.transcript+'"';div.appendChild(t);}
+  if(msg.transcript){
+    const t=document.createElement('div');t.className='bubble-transcript';
+    t.textContent='"'+msg.transcript+'"';div.appendChild(t);
+  }
 
   const exp=getExpiryHtml(msg);
   if(exp){const e=document.createElement('div');e.innerHTML=exp;div.appendChild(e);}
@@ -1047,12 +862,11 @@ function buildBubble(msg,idx){
   const pinBtn=document.createElement('button');pinBtn.className='bub-btn pin';
   pinBtn.textContent=msg.pinned?'📌 Unpin':'📌 Pin';
   pinBtn.onclick=()=>togglePin(msg);
+  actions.appendChild(pinBtn);
   if(isOut){
     const delBtn=document.createElement('button');delBtn.className='bub-btn del';
     delBtn.textContent='🗑 Delete';delBtn.onclick=()=>deleteMessage(msg);
-    actions.appendChild(pinBtn);actions.appendChild(delBtn);
-  }else{
-    actions.appendChild(pinBtn);
+    actions.appendChild(delBtn);
   }
   div.appendChild(actions);
   return div;
@@ -1060,124 +874,131 @@ function buildBubble(msg,idx){
 
 function getExpiryHtml(msg){
   if(msg.pinned)return'<div class="expiry-badge" style="color:var(--primary);">📌 Pinned — kept forever</div>';
-  if(!autoDeleteToggle().checked)return'';
-  const ttl=msg.type==='video'?7*24*60*60*1000:24*60*60*1000;
+  if(!aT().checked)return'';
   const savedMs=msg.sentAt?.toDate?msg.sentAt.toDate().getTime():(msg.savedAt||Date.now());
-  const r=ttl-(Date.now()-savedMs);
+  const r=24*60*60*1000-(Date.now()-savedMs);
   if(r<=0)return'<div class="expiry-badge expired">⏱ Expired</div>';
-  const days=Math.floor(r/86400000);
-  const h=Math.floor((r%86400000)/3600000);
-  const m=Math.floor((r%3600000)/60000);
-  const label=days>0?`${days}d ${h}h`:`${h}h ${m}m`;
-  return`<div class="expiry-badge${r<7200000?' soon':''}">⏱ Expires in ${label}</div>`;
+  const h=Math.floor(r/3600000),m=Math.floor((r%3600000)/60000);
+  return`<div class="expiry-badge${r<7200000?' soon':''}">⏱ Expires in ${h}h ${m}m</div>`;
 }
 
-/* ══════════════════════════════════
-   PIN / DELETE
-══════════════════════════════════ */
 async function togglePin(msg){
   if(!selectedTarget||!msg.firestoreId)return;
   const cid=convId(currentUser.uid,selectedTarget.uid);
   await updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),{pinned:!msg.pinned});
-  // Listener will re-render
 }
 
 async function deleteMessage(msg){
   if(!selectedTarget||!msg.firestoreId)return;
   const cid=convId(currentUser.uid,selectedTarget.uid);
   await deleteDoc(doc(db,'conversations',cid,'messages',msg.firestoreId));
-  if(msg.type==='video')await idbDel(msg.localId||msg.firestoreId);
 }
 
-/* ══════════════════════════════════
-   AUTO-DELETE
-══════════════════════════════════ */
 async function runAutoDelete(){
-  if(!autoDeleteToggle().checked||!currentUser)return;
-  const voiceCutoff=Date.now()-24*60*60*1000;
-  const videoCutoff=Date.now()-7*24*60*60*1000;
+  if(!aT().checked||!currentUser)return;
+  const cutoff=Date.now()-24*60*60*1000;
   for(const f of friends){
     const msgs=msgCache[f.uid]||[];
     for(const m of msgs){
       if(m.pinned)continue;
       const savedMs=m.sentAt?.toDate?m.sentAt.toDate().getTime():(m.savedAt||0);
-      const cutoff=m.type==='video'?videoCutoff:voiceCutoff;
       if(savedMs<cutoff&&m.firestoreId){
         const cid=convId(currentUser.uid,f.uid);
         await deleteDoc(doc(db,'conversations',cid,'messages',m.firestoreId)).catch(()=>{});
-        if(m.type==='video')await idbDel(m.localId||m.firestoreId);
       }
     }
   }
 }
 
-/* ══════════════════════════════════
-   NAV
-══════════════════════════════════ */
+/* ── GROUPS ── */
+function saveGroups(){localStorage.setItem('tb_groups',JSON.stringify(groups));}
+function renderGroups(){
+  const list=document.getElementById('groupsList');
+  const empty=document.getElementById('groupsEmpty');
+  if(!list)return;
+  list.innerHTML='';
+  if(!groups.length){empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  groups.forEach((g,i)=>{
+    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
+    div.innerHTML=`<span>👥 ${g.name} <small style="opacity:.4;font-size:11px;">(${(g.memberNames||g.members).join(', ')})</small></span>
+      <div class="item-actions">
+        <button class="action-btn rename" onclick="window._renameGroup(${i})">Rename</button>
+        <button class="action-btn remove" onclick="window._deleteGroup(${i})">Remove</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+function toggleCreateGroup(){document.getElementById('createGroupPanel').classList.toggle('hidden');renderGroupCheckboxes();}
+function renderGroupCheckboxes(){
+  const c=document.getElementById('groupFriendCheckboxes');if(!c)return;c.innerHTML='';
+  friends.forEach(f=>{
+    const name=f.nickname||f.name;
+    const l=document.createElement('label');
+    l.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);';
+    l.innerHTML=`<input type="checkbox" value="${f.uid}" style="accent-color:var(--primary);width:16px;height:16px;"> ${name}`;
+    c.appendChild(l);
+  });
+}
+function createGroup(){
+  const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
+  const name=document.getElementById('groupNameInput').value.trim();
+  if(sel.length<2||!name){showToast('⚠️ Need a name + 2 friends');return;}
+  const memberNames=sel.map(uid=>{const f=friends.find(x=>x.uid===uid);return f?f.nickname||f.name:uid;});
+  groups.push({name,members:sel,memberNames});
+  document.getElementById('groupNameInput').value='';
+  saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();showToast('✅ Group created');
+}
+window._renameGroup=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
+window._deleteGroup=i=>{if(!confirm('Delete "'+groups[i].name+'"?'))return;groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();};
+
+/* ── NAV ── */
 function showPage(id,btn){
   document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  if(id==='settingsPage')updateStorageInfo();
 }
 
-/* ══════════════════════════════════
-   HOME MODE TABS
-══════════════════════════════════ */
-function setMode(mode){
-  currentMode=mode;
-  document.getElementById('modeVoice').classList.toggle('active',mode==='voice');
-  document.getElementById('modeVideo').classList.toggle('active',mode==='video');
-  document.getElementById('voicePanel').classList.toggle('active',mode==='voice');
-  document.getElementById('videoPanel').classList.toggle('active',mode==='video');
-  document.getElementById('headerBadge').textContent=mode==='voice'?'Voice':'VideoTell';
-  if(mode==='video')setTimeout(startCameraPreview,50);
-  else stopCameraPreview();
-}
+/* ── LIVE WAVEFORM ── */
+const NUM_BARS=12;
+function startWaveform(stream){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const src=ctx.createMediaStreamSource(stream);
+  analyserNode=ctx.createAnalyser();
+  analyserNode.fftSize=256;
+  src.connect(analyserNode);
+  const data=new Uint8Array(analyserNode.frequencyBinCount);
+  const bars=Array.from({length:NUM_BARS},(_,i)=>document.getElementById('wvb'+i));
+  document.getElementById('waveformWrap').classList.add('active');
 
-/* ══════════════════════════════════
-   CAMERA
-══════════════════════════════════ */
-async function startCameraPreview(){
-  const prevEl=document.getElementById('cameraPreview');
-  if(cameraStream&&cameraStream.getVideoTracks().every(t=>t.readyState==='ended')){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-  if(!cameraStream){
-    try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});}
-    catch(err){console.warn('Camera denied:',err);return;}
+  function draw(){
+    waveAnimId=requestAnimationFrame(draw);
+    analyserNode.getByteFrequencyData(data);
+    bars.forEach((bar,i)=>{
+      if(!bar)return;
+      // Sample different frequency bins for visual variety
+      const val=data[Math.floor(i*(data.length/NUM_BARS/2))];
+      const h=Math.max(4,Math.min(44,(val/255)*44));
+      bar.style.height=h+'px';
+      bar.style.opacity=0.5+(val/255)*0.5;
+    });
   }
-  prevEl.srcObject=cameraStream;
-  try{const devs=await navigator.mediaDevices.enumerateDevices();availableCameras=devs.filter(d=>d.kind==='videoinput');renderCameraControls();}catch(_){}
-}
-async function switchCamera(idx){
-  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-  currentCamIdx=idx;
-  const cam=availableCameras[idx];
-  const prevEl=document.getElementById('cameraPreview');
-  try{
-    const constraints=cam&&cam.deviceId?{video:{deviceId:{exact:cam.deviceId}},audio:false}:{video:{facingMode:idx===0?'user':'environment'},audio:false};
-    cameraStream=await navigator.mediaDevices.getUserMedia(constraints);
-    prevEl.srcObject=cameraStream;
-  }catch(e){cameraStream=null;}
-}
-function renderCameraControls(){
-  const wrap=document.getElementById('cameraControls');wrap.innerHTML='';
-  if(availableCameras.length<=1)return;
-  availableCameras.forEach((cam,i)=>{
-    const btn=document.createElement('button');btn.className='cam-pill'+(i===currentCamIdx?' active-cam':'');
-    btn.textContent=cam.label||(i===0?'Front':'Back');
-    btn.onclick=()=>{switchCamera(i);renderCameraControls();};
-    wrap.appendChild(btn);
-  });
-}
-function stopCameraPreview(){
-  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-  const el=document.getElementById('cameraPreview');if(el)el.srcObject=null;
+  draw();
 }
 
-/* ══════════════════════════════════
-   SPEECH RECOGNITION
-══════════════════════════════════ */
+function stopWaveform(){
+  if(waveAnimId){cancelAnimationFrame(waveAnimId);waveAnimId=null;}
+  analyserNode=null;
+  document.getElementById('waveformWrap').classList.remove('active');
+  // Reset bars
+  for(let i=0;i<NUM_BARS;i++){
+    const b=document.getElementById('wvb'+i);
+    if(b){b.style.height='8px';b.style.opacity='1';}
+  }
+}
+
+/* ── SPEECH ── */
 let recognition=null, liveTranscript='';
 function setupRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;
@@ -1190,124 +1011,100 @@ function setupRecognition(){
   rec.onerror=()=>{};return rec;
 }
 
-/* ══════════════════════════════════
-   RECORDING ENGINE
-══════════════════════════════════ */
+/* ── RECORDING ENGINE ── */
 let mediaRecorder=null,chunks=[],recStream=null;
-function getBestMime(type){
-  const v=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4'];
+function getBestMime(){
   const a=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
-  return(type==='video'?v:a).find(m=>MediaRecorder.isTypeSupported(m))||'';
+  return a.find(m=>MediaRecorder.isTypeSupported(m))||'';
 }
 
-function bindRecordBtn(btn,waveEl,hintEl,mode){
+function bindRecordBtn(){
+  const btn=document.getElementById('sendBtn');
+  const hintEl=document.getElementById('recordHint');
   let pressed=false,started=false,shouldStop=false;
+
   function resetUI(){
-    btn.classList.remove('recording');btn.textContent=mode==='video'?'📹':'🎙';
-    waveEl.style.display='none';
-    if(hintEl){hintEl.textContent=mode==='video'?'Hold to Record':'Hold to Talk';hintEl.classList.remove('recording-hint');}
+    btn.classList.remove('recording');btn.textContent='🎙';
+    stopWaveform();
+    if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}
   }
+
   async function start(e){
     e.preventDefault();
     if(pressed||isRecording)return;
     if(!selectedTarget){showToast('⚠️ Select a contact first');return;}
     if(selectedTarget.pending){showToast('⚠️ Friend hasn\'t joined yet');return;}
+    if(selectedTarget.isGroup){showToast('⚠️ Group messaging coming soon');return;}
     pressed=true;shouldStop=false;isRecording=true;
     btn.classList.add('recording');btn.textContent='⏺';
-    waveEl.style.display='flex';
     if(hintEl){hintEl.textContent='Recording…';hintEl.classList.add('recording-hint');}
-    try{
-      if(mode==='video'){
-        const aStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-        const vTrack=cameraStream?cameraStream.getVideoTracks()[0]:null;
-        recStream=vTrack?new MediaStream([vTrack,...aStream.getAudioTracks()]):await navigator.mediaDevices.getUserMedia({video:true,audio:true});
-      }else{
-        recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-      }
-    }catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('⚠️ Permission denied');return;}
+
+    try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}
+    catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('⚠️ Microphone permission denied');return;}
+
     if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}
-    const mime=getBestMime(mode);
+
+    // Start live waveform
+    startWaveform(recStream);
+
+    const mime=getBestMime();
     try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}
     catch(ex){mediaRecorder=new MediaRecorder(recStream);}
     chunks=[];
     mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};
     mediaRecorder.start(100);started=true;
-    if(transcriptToggle().checked&&mode==='voice'){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}
+
+    if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}
     if(shouldStop)await doStop();
   }
 
   async function doStop(){
     if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){
-      started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;
+      started=false;pressed=false;isRecording=false;shouldStop=false;
+      resetUI();btn.disabled=false;return;
     }
     if(recognition){try{recognition.stop();}catch(_){}recognition=null;}
-    started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();
-    btn.disabled=true;
-    if(mode==='voice'&&transcriptToggle().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');
+    started=false;pressed=false;isRecording=false;shouldStop=false;
+    resetUI();btn.disabled=true;
+    if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');
 
     mediaRecorder.onstop=async()=>{
       document.getElementById('transcribingIndicator').classList.add('hidden');
       if(!chunks.length){btn.disabled=false;showToast('⚠️ Nothing recorded');return;}
-      const mimeUsed=mediaRecorder.mimeType||(mode==='video'?'video/webm':'audio/webm');
+      const mimeUsed=mediaRecorder.mimeType||'audio/webm';
       const blob=new Blob(chunks,{type:mimeUsed});chunks=[];
       if(blob.size===0){btn.disabled=false;showToast('⚠️ Empty recording');return;}
 
       const saveTarget=selectedTarget;
       if(!saveTarget){btn.disabled=false;return;}
 
-      const localId='msg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-
-      if(mode==='video'){
-        // Store video in IndexedDB locally
-        try{await idbSet(localId,blob);}catch(e){btn.disabled=false;showToast('⚠️ Storage full');return;}
-        // Save metadata to Firestore (no blob)
+      // Convert to base64 and save to Firestore
+      const reader=new FileReader();
+      reader.onloadend=async()=>{
+        const base64=reader.result;
         const cid=convId(currentUser.uid,saveTarget.uid);
-        const videoMsgRef = await addDoc(collection(db,'conversations',cid,'messages'),{
-          senderUid:currentUser.uid,senderName:myName,
-          type:'video',localId,
-          transcript:liveTranscript||null,
-          sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
-        });
-        await sendPushToUser(saveTarget.uid,'video');
-      }else{
-        // Voice: convert to base64 and store in Firestore
-        const reader=new FileReader();
-        reader.onloadend=async()=>{
-          const base64=reader.result; // data:audio/webm;base64,...
-          const cid=convId(currentUser.uid,saveTarget.uid);
-          try{
-            await addDoc(collection(db,'conversations',cid,'messages'),{
-              senderUid:currentUser.uid,senderName:myName,
-              type:'voice',audioBase64:base64,
-              transcript:liveTranscript||null,
-              sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
-            });
-          }catch(e){console.error(e);showToast('⚠️ Failed to send: '+e.message);btn.disabled=false;return;}
-          // Send push notification to recipient
-          await sendPushToUser(saveTarget.uid,'voice');
+        try{
+          await addDoc(collection(db,'conversations',cid,'messages'),{
+            senderUid:currentUser.uid,senderName:myName,
+            type:'voice',audioBase64:base64,
+            transcript:liveTranscript||null,
+            sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
+          });
+          await sendPushToUser(saveTarget.uid);
           // Play back locally
-          const audio=new Audio(URL.createObjectURL(blob));audio.play().catch(()=>{});
+          new Audio(URL.createObjectURL(blob)).play().catch(()=>{});
           btn.disabled=false;
           btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);
           showToast('✅ Sent!');
           liveTranscript='';
-        };
-        reader.readAsDataURL(blob);
+        }catch(e){
+          console.error(e);
+          showToast('⚠️ Failed to send: '+(e.message||'unknown error'));
+          btn.disabled=false;
+        }
         if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}
-        return; // early return — rest handled in onloadend
-      }
-
-      liveTranscript='';
-      btn.disabled=false;
-      btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);
-      showToast('✅ Sent!');
-
-      if(mode==='video'){
-        if(recStream){recStream.getAudioTracks().forEach(t=>t.stop());recStream=null;}
-        if(cameraStream&&cameraStream.getVideoTracks().some(t=>t.readyState==='live')){
-          document.getElementById('cameraPreview').srcObject=cameraStream;
-        }else{startCameraPreview();}
-      }
+      };
+      reader.readAsDataURL(blob);
     };
     mediaRecorder.stop();
   }
@@ -1318,6 +1115,7 @@ function bindRecordBtn(btn,waveEl,hintEl,mode){
     if(!started){shouldStop=true;return;}
     doStop();
   }
+
   btn.addEventListener('mousedown',start);
   btn.addEventListener('mouseup',stop);
   btn.addEventListener('mouseleave',stop);
@@ -1326,28 +1124,12 @@ function bindRecordBtn(btn,waveEl,hintEl,mode){
   btn.addEventListener('touchcancel',stop,{passive:false});
 }
 
-/* ══════════════════════════════════
-   SETTINGS
-══════════════════════════════════ */
-async function updateStorageInfo(){
-  const bytes=await idbSize();
-  document.getElementById('storageInfo').textContent=bytes>0?`${(bytes/1048576).toFixed(2)} MB used locally`:'No local video stored';
-}
-function showClearDataModal(){openModal('clearDataModal');}
-async function confirmClearData(){
-  await idbDelAll();closeModal('clearDataModal');showToast('🗑 Local video cleared');
-}
-
-/* ══════════════════════════════════
-   MODALS
-══════════════════════════════════ */
+/* ── MODALS ── */
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 
-/* ══════════════════════════════════
-   RIPPLE
-══════════════════════════════════ */
+/* ── RIPPLE ── */
 function addRipple(btn,e){
   const r=document.createElement('span');r.className='ripple';
   const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);
@@ -1355,131 +1137,43 @@ function addRipple(btn,e){
   btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());
 }
 
-/* ══════════════════════════════════
-   INIT
-══════════════════════════════════ */
-await openIDB();
-
-// Pre-render reCAPTCHA — callback fires signInWithPhoneNumber automatically
+/* ── RECAPTCHA INIT ── */
 try{
-  recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
+  recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{
     size:'normal',
-    callback: async()=>{
-      // reCAPTCHA solved — now send the SMS
-      const raw = document.getElementById('phoneInput').value.trim();
-      const digits = raw.replace(/[^\d+]/g,'');
-      const phone = digits.startsWith('+') ? digits : '+1'+digits;
-      const errEl = document.getElementById('authError1');
-      const btn   = document.getElementById('sendCodeBtn');
-      if(!phone||phone.length<8){
-        errEl.textContent='Enter your phone number first, then complete the check.';
-        return;
-      }
-      btn.disabled=true; btn.textContent='Sending…';
+    callback:async()=>{
+      const raw=document.getElementById('phoneInput').value.trim();
+      const errEl=document.getElementById('authError1');
+      const btn=document.getElementById('sendCodeBtn');
+      if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}
+      const phone=normalizePhone(raw);
+      if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short.';return;}
+      btn.disabled=true;btn.textContent='Sending…';
       try{
-        confirmResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-        document.getElementById('otpDesc').textContent = 'Code sent to '+phone;
+        confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);
+        document.getElementById('otpDesc').textContent='Code sent to '+phone;
         document.getElementById('authStep1').classList.remove('active');
         document.getElementById('authStep2').classList.add('active');
         setTimeout(()=>document.getElementById('otp0').focus(),200);
       }catch(e){
         console.error(e);
-        errEl.textContent = e.message||'Failed to send. Check your number.';
-        // Reset recaptcha
-        try{recaptchaVerifier.clear();}catch(_){}
-        recaptchaVerifier=null;
-        // Re-render
-        try{
-          recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:()=>{},'expired-callback':()=>{recaptchaVerifier=null;}});
-          await recaptchaVerifier.render();
-        }catch(_){}
-      }finally{
-        btn.disabled=false; btn.textContent='Send Code';
-      }
+        errEl.textContent=e.message||'Failed to send. Check your number.';
+        try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;
+      }finally{btn.disabled=false;btn.textContent='Send Code →';}
     },
-    'expired-callback':()=>{
-      showToast('⚠️ Check expired — please try again');
-      recaptchaVerifier=null;
-    }
+    'expired-callback':()=>{showToast('⚠️ Check expired — please try again');recaptchaVerifier=null;}
   });
   await recaptchaVerifier.render();
-  document.getElementById('recaptchaLabel').textContent='Enter your number above, then complete the check to send your code';
-}catch(e){console.warn('reCAPTCHA pre-render:',e);}
+  document.getElementById('recaptchaHint').textContent='Enter your number above, then complete the check to receive your code';
+}catch(e){console.warn('reCAPTCHA init:',e);}
 
-// Expose globals needed by inline onclick handlers
-window.setMode=setMode; window.showPage=showPage; window.toggleDark=toggleDark;
-window.saveSettings=saveSettings; window.showAddFriendModal=showAddFriendModal;
-window.confirmAddFriend=confirmAddFriend; window.sendCode=sendCode;
-window.verifyCode=verifyCode; window.saveDisplayName=saveDisplayName;
-window.goBackToStep1=goBackToStep1; window.signOutUser=signOutUser;
-window.showClearDataModal=showClearDataModal; window.confirmClearData=confirmClearData;
-window.openModal=openModal; window.closeModal=closeModal;
+/* ── EXPOSE GLOBALS ── */
+window.sendCode=sendCode; window.verifyCode=verifyCode; window.goBackToStep1=goBackToStep1;
+window.saveDisplayName=saveDisplayName; window.signOutUser=signOutUser;
+window.showPage=showPage; window.toggleDark=toggleDark; window.saveSettings=saveSettings;
+window.showAddFriendModal=showAddFriendModal; window.confirmAddFriend=confirmAddFriend;
+window.setStatus=setStatus; window.openModal=openModal; window.closeModal=closeModal;
 window.toggleCreateGroup=toggleCreateGroup; window.createGroup=createGroup;
-window.renameGroup=renameGroup; window.deleteGroup=deleteGroup;
-
-/* ══════════════════════════════════
-   GROUPS (local — stored in localStorage)
-══════════════════════════════════ */
-let groups = JSON.parse(localStorage.getItem('tb_groups')||'[]');
-
-function saveGroups(){localStorage.setItem('tb_groups',JSON.stringify(groups));}
-
-function renderGroups(){
-  const list=document.getElementById('groupsList');
-  const empty=document.getElementById('groupsEmpty');
-  if(!list)return;
-  list.innerHTML='';
-  if(!groups.length){empty.classList.remove('hidden');return;}
-  empty.classList.add('hidden');
-  groups.forEach((g,i)=>{
-    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
-    div.innerHTML=`<span>👥 ${g.name} <small style="opacity:.5;font-size:11px;">(${g.members.join(', ')})</small></span>
-      <div class="item-actions">
-        <button class="action-btn rename" onclick="renameGroup(${i})">Rename</button>
-        <button class="action-btn remove" onclick="deleteGroup(${i})">Remove</button>
-      </div>`;
-    list.appendChild(div);
-  });
-}
-
-function toggleCreateGroup(){
-  document.getElementById('createGroupPanel').classList.toggle('hidden');
-  renderGroupCheckboxes();
-}
-
-function renderGroupCheckboxes(){
-  const c=document.getElementById('groupFriendCheckboxes');
-  if(!c)return;
-  c.innerHTML='';
-  friends.forEach(f=>{
-    const name=f.nickname||f.name;
-    const l=document.createElement('label');
-    l.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);';
-    l.innerHTML=`<input type="checkbox" value="${f.uid}" style="accent-color:var(--primary);width:16px;height:16px;"> ${name}`;
-    c.appendChild(l);
-  });
-}
-
-function createGroup(){
-  const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
-  const name=document.getElementById('groupNameInput').value.trim();
-  if(sel.length<2||!name){showToast('⚠️ Need a name + 2 friends');return;}
-  // Store member names for display
-  const memberNames=sel.map(uid=>{const f=friends.find(x=>x.uid===uid);return f?f.nickname||f.name:uid;});
-  groups.push({name,members:sel,memberNames});
-  document.getElementById('groupNameInput').value='';
-  saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();showToast('✅ Group created');
-}
-
-function renameGroup(i){
-  const n=prompt('Rename group:',groups[i].name);if(!n)return;
-  groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();
-}
-
-function deleteGroup(i){
-  if(!confirm('Delete "'+groups[i].name+'"?'))return;
-  groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();
-}
 
 </script>
 </body>
