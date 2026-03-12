@@ -756,7 +756,7 @@ function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCas
 function renderSpeedSend(){
   const box=document.getElementById('speedSend');
   box.innerHTML='';
-  const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true}))];
+  const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];
   if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">👋</div>Add a friend to get started</div>';return;}
   all.forEach((f,idx)=>{
     const name=f.nickname||f.name;
@@ -773,7 +773,8 @@ function renderSpeedSend(){
     chip.onclick=()=>{
       selectedTarget=f;
       renderSpeedSend();updateSelectedLabel();
-      if(!f.isGroup)subscribeToMessages(f.uid);
+      if(f.isGroup)subscribeToGroupMessages(f.uid,f.members);
+      else subscribeToMessages(f.uid);
       renderChat();
     };
     box.appendChild(chip);
@@ -811,13 +812,13 @@ function renderChat(){
   const title=document.getElementById('voiceChatTitle');
   history.innerHTML='';
   if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">💬</div>Select someone above</div>';return;}
-  title.innerText=selectedTarget.nickname||selectedTarget.name;
+  title.innerText=(selectedTarget.isGroup?'👥 ':'')+( selectedTarget.nickname||selectedTarget.name);
   const msgs=msgCache[selectedTarget.uid]||[];
   if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">🎙</div>Hold the button to record your first message!</div>';return;}
   const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
   sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));
-  markRead(selectedTarget.uid);
-  // Scroll to bottom
+  if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);
+  else markRead(selectedTarget.uid);
   setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);
 }
 
@@ -834,7 +835,8 @@ function buildBubble(msg,idx){
   ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';
   const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='🎙 Voice';
   const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');
-  dir.textContent=isOut?'You':(selectedTarget?selectedTarget.nickname||selectedTarget.name:'');
+  const senderLabel=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));
+  dir.textContent=senderLabel;
   top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);
 
   // Audio
@@ -884,13 +886,13 @@ function getExpiryHtml(msg){
 
 async function togglePin(msg){
   if(!selectedTarget||!msg.firestoreId)return;
-  const cid=convId(currentUser.uid,selectedTarget.uid);
+  const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);
   await updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),{pinned:!msg.pinned});
 }
 
 async function deleteMessage(msg){
   if(!selectedTarget||!msg.firestoreId)return;
-  const cid=convId(currentUser.uid,selectedTarget.uid);
+  const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);
   await deleteDoc(doc(db,'conversations',cid,'messages',msg.firestoreId));
 }
 
@@ -951,6 +953,48 @@ function createGroup(){
 }
 window._renameGroup=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
 window._deleteGroup=i=>{if(!confirm('Delete "'+groups[i].name+'"?'))return;groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();};
+
+/* ── GROUP MESSAGING ── */
+function groupConvId(groupUid){
+  // Group convId is just the group uid (grp_GroupName)
+  return 'group_'+groupUid.replace('grp_','').replace(/[^a-zA-Z0-9]/g,'_');
+}
+
+function subscribeToGroupMessages(groupUid, members){
+  if(msgListeners[groupUid])return;
+  const cid=groupConvId(groupUid);
+  const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));
+  msgListeners[groupUid]=onSnapshot(q,snap=>{
+    const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));
+    msgCache[groupUid]=msgs;
+    if(selectedTarget&&selectedTarget.uid===groupUid)renderChat();
+    const hasNew=msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));
+    const dot=document.getElementById('dot-'+groupUid);
+    if(dot)dot.classList.toggle('show',hasNew&&!(selectedTarget&&selectedTarget.uid===groupUid));
+  });
+}
+
+async function sendGroupPush(members){
+  // Send push notification to all group members except sender
+  for(const uid of (members||[])){
+    if(uid===currentUser.uid)continue;
+    try{
+      await addDoc(collection(db,'notifications'),{
+        toUid:uid,fromUid:currentUser.uid,fromName:myName,
+        sentAt:serverTimestamp(),read:false,isGroup:true
+      });
+    }catch(e){console.warn('Group push failed:',e);}
+  }
+}
+
+async function markGroupRead(groupUid){
+  const cid=groupConvId(groupUid);
+  const msgs=msgCache[groupUid]||[];
+  for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid))){
+    await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),
+      {readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});
+  }
+}
 
 /* ── NAV ── */
 function showPage(id,btn){
@@ -1034,7 +1078,7 @@ function bindRecordBtn(){
     if(pressed||isRecording)return;
     if(!selectedTarget){showToast('⚠️ Select a contact first');return;}
     if(selectedTarget.pending){showToast('⚠️ Friend hasn\'t joined yet');return;}
-    if(selectedTarget.isGroup){showToast('⚠️ Group messaging coming soon');return;}
+    // Groups supported
     pressed=true;shouldStop=false;isRecording=true;
     btn.classList.add('recording');btn.textContent='⏺';
     if(hintEl){hintEl.textContent='Recording…';hintEl.classList.add('recording-hint');}
@@ -1082,7 +1126,7 @@ function bindRecordBtn(){
       const reader=new FileReader();
       reader.onloadend=async()=>{
         const base64=reader.result;
-        const cid=convId(currentUser.uid,saveTarget.uid);
+        const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);
         try{
           await addDoc(collection(db,'conversations',cid,'messages'),{
             senderUid:currentUser.uid,senderName:myName,
@@ -1090,7 +1134,8 @@ function bindRecordBtn(){
             transcript:liveTranscript||null,
             sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]
           });
-          await sendPushToUser(saveTarget.uid);
+          if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);
+          else await sendPushToUser(saveTarget.uid);
           // Play back locally
           new Audio(URL.createObjectURL(blob)).play().catch(()=>{});
           btn.disabled=false;
