@@ -899,16 +899,40 @@ async function deleteMessage(msg){
 async function runAutoDelete(){
   if(!aT().checked||!currentUser)return;
   const cutoff=Date.now()-24*60*60*1000;
+
+  // Delete from 1-on-1 conversations
   for(const f of friends){
-    const msgs=msgCache[f.uid]||[];
-    for(const m of msgs){
-      if(m.pinned)continue;
-      const savedMs=m.sentAt?.toDate?m.sentAt.toDate().getTime():(m.savedAt||0);
-      if(savedMs<cutoff&&m.firestoreId){
-        const cid=convId(currentUser.uid,f.uid);
-        await deleteDoc(doc(db,'conversations',cid,'messages',m.firestoreId)).catch(()=>{});
+    const cid=convId(currentUser.uid,f.uid);
+    try{
+      const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));
+      for(const d of snap.docs){
+        const m=d.data();
+        if(m.pinned)continue;
+        const savedMs=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;
+        if(savedMs>0&&savedMs<cutoff){
+          await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});
+        }
       }
-    }
+    }catch(e){console.warn('Auto-delete error:',e);}
+  }
+
+  // Delete from group conversations
+  for(const g of groups){
+    const gUid='grp_'+g.name;
+    const cid=groupConvId(gUid);
+    try{
+      const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));
+      for(const d of snap.docs){
+        const m=d.data();
+        if(m.pinned)continue;
+        // Only delete messages you sent (to avoid permission issues)
+        if(m.senderUid!==currentUser.uid)continue;
+        const savedMs=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;
+        if(savedMs>0&&savedMs<cutoff){
+          await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});
+        }
+      }
+    }catch(e){console.warn('Group auto-delete error:',e);}
   }
 }
 
