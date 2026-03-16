@@ -660,13 +660,7 @@ async function sendCode(){
   if(!raw){e.textContent='Please enter your phone number first.';return;}
   const phone=normalizePhone(raw);
   if(phone.replace(/\D/g,'').length<8){e.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
-  // If reCAPTCHA isn't loaded yet, init it now
-  if(!recaptchaVerifier){
-    initRecaptcha();
-    showToast('Complete the check below to send your code');
-    return;
-  }
-  showToast('Complete the check below to send your code');
+  showToast('Number saved — complete the check below');
 }
 document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{inp.addEventListener('input',()=>{if(inp.value.length===1&&i<arr.length-1)arr[i+1].focus();if(inp.value.length===1&&i===arr.length-1)verifyCode();});inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)arr[i-1].focus();});});
 async function verifyCode(){const code=[0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');const e=document.getElementById('authError2');e.textContent='';if(code.length<6){e.textContent='Enter all 6 digits.';return;}const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.textContent='Verifying...';try{await confirmResult.confirm(code);}catch(err){e.textContent='Incorrect code. Please try again.';[0,1,2,3,4,5].forEach(i=>document.getElementById('otp'+i).value='');document.getElementById('otp0').focus();}finally{btn.disabled=false;btn.textContent='Verify';}}
@@ -1092,61 +1086,38 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
-// reCAPTCHA init — runs after DOM is ready
-function initRecaptcha(){
-  if(recaptchaVerifier) return;
-  try{
-    recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
-      size:'normal',
-      callback: async()=>{
-        const raw=document.getElementById('phoneInput').value.trim();
-        const errEl=document.getElementById('authError1');
-        const btn=document.getElementById('sendCodeBtn');
-        if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}
-        const phone=normalizePhone(raw);
-        if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
-        btn.disabled=true;btn.textContent='Sending...';
-        try{
-          confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);
-          document.getElementById('otpDesc').textContent='Code sent to '+phone;
-          document.getElementById('authStep1').classList.remove('active');
-          document.getElementById('authStep2').classList.add('active');
-          setTimeout(()=>document.getElementById('otp0').focus(),200);
-        }catch(e){
-          console.error(e);
-          errEl.textContent=e.message||'Failed to send. Check your number.';
-          try{recaptchaVerifier.clear();}catch(_){}
-          recaptchaVerifier=null;
-          // Re-init after failure
-          setTimeout(initRecaptcha, 500);
-        }finally{
-          btn.disabled=false;btn.textContent='Send Code';
-        }
-      },
-      'expired-callback':()=>{
-        showToast('Check expired — please try again');
-        recaptchaVerifier=null;
-        setTimeout(initRecaptcha,500);
-      }
-    });
-    recaptchaVerifier.render().then(()=>{
-      console.log('reCAPTCHA ready');
-    }).catch(e=>{
-      console.warn('reCAPTCHA render failed:',e);
+// reCAPTCHA — render on module load (module scripts run after DOM is ready)
+try{
+  recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
+    size:'normal',
+    callback: async()=>{
+      const raw=document.getElementById('phoneInput').value.trim();
+      const errEl=document.getElementById('authError1');
+      const btn=document.getElementById('sendCodeBtn');
+      if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}
+      const phone=normalizePhone(raw);
+      if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
+      btn.disabled=true;btn.textContent='Sending...';
+      try{
+        confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);
+        document.getElementById('otpDesc').textContent='Code sent to '+phone;
+        document.getElementById('authStep1').classList.remove('active');
+        document.getElementById('authStep2').classList.add('active');
+        setTimeout(()=>document.getElementById('otp0').focus(),200);
+      }catch(e){
+        console.error(e);
+        errEl.textContent=e.message||'Failed to send. Check your number.';
+        try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;
+      }finally{btn.disabled=false;btn.textContent='Send Code';}
+    },
+    'expired-callback':()=>{
+      showToast('Check expired — please try again');
       recaptchaVerifier=null;
-    });
-  }catch(e){
-    console.warn('reCAPTCHA init failed:',e);
-    recaptchaVerifier=null;
-  }
-}
-// Init on load
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', initRecaptcha);
-}else{
-  initRecaptcha();
-}
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
+    }
+  });
+  await recaptchaVerifier.render();
+}catch(e){console.warn('reCAPTCHA:',e);}
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
 </script>
 </body>
-</html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </html>
