@@ -171,6 +171,20 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
 .empty{text-align:center;padding:24px 16px;color:var(--sub);font-size:13px;}
 .empty .emoji{font-size:28px;margin-bottom:6px;}
 .hidden{display:none!important;}
+/* profile picture */
+.avatar-wrap{position:relative;width:72px;height:72px;cursor:pointer;flex-shrink:0;}
+.avatar-img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--border);box-shadow:0 2px 8px rgba(37,99,235,.2);}
+.avatar-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.3);}
+.avatar-initials{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#7ab0ff 0%,#2563eb 100%);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:#fff;border:2px solid var(--border);box-shadow:0 2px 8px rgba(37,99,235,.2);}
+/* chip avatar with photo */
+.chip-avatar-img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3);box-shadow:0 2px 8px rgba(37,99,235,.3);}
+/* read receipts */
+.read-receipt{font-size:10px;color:var(--sub);margin-top:3px;font-family:'Syne',sans-serif;letter-spacing:.2px;}
+.read-receipt.seen{color:var(--primary);}
+/* custom status text */
+.status-text-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-top:8px;transition:border-color .15s;}
+.status-text-input:focus{border-color:var(--primary);}
+.custom-status-display{font-size:11px;color:#a0c0ff;font-family:'DM Sans',sans-serif;margin-top:2px;font-style:italic;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* notification items */
 .notif-item{padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);background:var(--card);animation:itemIn .2s ease both;}
 .notif-item.invite{border-left:3px solid var(--primary);}
@@ -253,7 +267,10 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
   <div class="header-logo">Tell<span>Back</span></div>
   <div class="header-right">
     <span class="status-dot-sm" id="headerStatusDot" style="background:#22c55e;"></span>
-    <div class="header-user" id="headerUser"></div>
+    <div>
+      <div class="header-user" id="headerUser"></div>
+      <div class="custom-status-display" id="headerCustomStatus" style="display:none;"></div>
+    </div>
   </div>
 </header>
 <div class="container subpage active" id="homePage">
@@ -316,9 +333,22 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
     </div>
   </div>
   <div class="card">
+    <div class="card-title">Profile</div>
+    <div class="setting-row" style="gap:14px;">
+      <div class="avatar-wrap" onclick="triggerAvatarUpload()" id="settingAvatarWrap">
+        <div class="avatar-initials" id="settingAvatarInitials">?</div>
+        <div class="avatar-edit">✏️</div>
+      </div>
+      <div style="flex:1;">
+        <div class="setting-label" id="settingName" style="font-size:16px;font-weight:700;">-</div>
+        <div class="setting-desc" id="settingPhone">-</div>
+        <input type="text" id="customStatusInput" class="status-text-input" placeholder="Set a status message…" maxlength="60" oninput="saveCustomStatus()">
+      </div>
+    </div>
+    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+  </div>
+  <div class="card">
     <div class="card-title">Account</div>
-    <div class="setting-row"><div><div class="setting-label" id="settingPhone">-</div><div class="setting-desc">Your verified number</div></div></div>
-    <div class="setting-row"><div><div class="setting-label" id="settingName">-</div><div class="setting-desc">Your display name</div></div></div>
     <div class="setting-row"><div><div class="setting-label">Sign Out</div></div><button class="app-button danger" style="width:auto;padding:8px 14px;margin:0;font-size:13px;" onclick="signOutUser()">Sign Out</button></div>
   </div>
   <div class="card">
@@ -394,6 +424,97 @@ let friends=[],groups=JSON.parse(localStorage.getItem('tb_groups')||'[]');
 let selectedTarget=null,isRecording=false,msgListeners={},msgCache={};
 let confirmResult=null,recaptchaVerifier=null,analyserNode=null,waveAnimId=null;
 const SC={online:'#22c55e',away:'#f59e0b',busy:'#ef4444',offline:'#94a3b8'};
+let myAvatar=''; // base64 data URL
+let myCustomStatus='';
+
+/* ── SOUNDS ── */
+function playSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const g=ctx.createGain();g.connect(ctx.destination);
+    if(type==='send'){
+      // Whoosh: quick frequency sweep down
+      const o=ctx.createOscillator();o.connect(g);
+      o.type='sine';o.frequency.setValueAtTime(800,ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(200,ctx.currentTime+0.18);
+      g.gain.setValueAtTime(0.18,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.18);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+0.18);
+    }else if(type==='receive'){
+      // Ping: two quick tones
+      [0,0.1].forEach((delay,i)=>{
+        const o=ctx.createOscillator();o.connect(g);
+        o.type='sine';o.frequency.value=i===0?880:1100;
+        g.gain.setValueAtTime(0.15,ctx.currentTime+delay);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.12);
+        o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+0.14);
+      });
+    }
+  }catch(e){}
+}
+
+/* ── PROFILE PICTURE ── */
+function triggerAvatarUpload(){document.getElementById('avatarFileInput').click();}
+async function handleAvatarUpload(event){
+  const file=event.target.files[0];if(!file)return;
+  if(file.size>2*1024*1024){showToast('Image too large — max 2MB');return;}
+  const reader=new FileReader();
+  reader.onloadend=async()=>{
+    // Resize to max 200x200 to keep it small for Firestore
+    const img=new Image();
+    img.onload=async()=>{
+      const canvas=document.createElement('canvas');
+      const max=200;
+      let w=img.width,h=img.height;
+      if(w>h){if(w>max){h=h*max/w;w=max;}}else{if(h>max){w=w*max/h;h=max;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      myAvatar=canvas.toDataURL('image/jpeg',0.75);
+      // Save to Firestore
+      try{
+        await setDoc(doc(db,'users',currentUser.uid),{avatar:myAvatar},{merge:true});
+        renderSettingsAvatar();renderSpeedSend();
+        showToast('✅ Profile picture updated');
+      }catch(e){showToast('Failed to save: '+e.message);}
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value='';
+}
+function renderSettingsAvatar(){
+  const wrap=document.getElementById('settingAvatarWrap');
+  const initEl=document.getElementById('settingAvatarInitials');
+  if(!wrap)return;
+  // Remove old img if any
+  const old=wrap.querySelector('img');if(old)old.remove();
+  if(myAvatar){
+    if(initEl)initEl.style.display='none';
+    const img=document.createElement('img');
+    img.src=myAvatar;img.className='avatar-img';
+    wrap.insertBefore(img,wrap.firstChild);
+  }else{
+    if(initEl){initEl.style.display='flex';initEl.textContent=getInitials(myName)||'?';}
+  }
+}
+
+/* ── CUSTOM STATUS ── */
+let statusSaveTimer=null;
+function saveCustomStatus(){
+  const val=document.getElementById('customStatusInput')?.value||'';
+  myCustomStatus=val;
+  updateCustomStatusDisplay();
+  clearTimeout(statusSaveTimer);
+  statusSaveTimer=setTimeout(async()=>{
+    try{await setDoc(doc(db,'users',currentUser.uid),{customStatus:val},{merge:true});}catch(e){}
+  },800);
+}
+function updateCustomStatusDisplay(){
+  const el=document.getElementById('headerCustomStatus');
+  if(!el)return;
+  if(myCustomStatus){el.textContent=myCustomStatus;el.style.display='block';}
+  else el.style.display='none';
+}
 const dT=()=>document.getElementById('darkToggle');
 const tT=()=>document.getElementById('transcriptToggle');
 const aT=()=>document.getElementById('autoDeleteToggle');
@@ -411,7 +532,40 @@ function goBackToStep1(){document.getElementById('authStep2').classList.remove('
 async function saveDisplayName(){const name=document.getElementById('displayNameInput').value.trim();const e=document.getElementById('authError3');e.textContent='';if(!name){e.textContent='Please enter your name.';return;}try{await setDoc(doc(db,'users',currentUser.uid),{uid:currentUser.uid,phone:currentUser.phoneNumber,name,status:'online',createdAt:serverTimestamp()},{merge:true});myName=name;launchApp();}catch(err){e.textContent='Could not save. Try again.';}}
 onAuthStateChanged(auth,async user=>{if(user){currentUser=user;myPhone=user.phoneNumber||'';const snap=await getDoc(doc(db,'users',user.uid));if(snap.exists()&&snap.data().name){myName=snap.data().name;myStatus=snap.data().status||'online';launchApp();}else{document.getElementById('authStep1').classList.remove('active');document.getElementById('authStep2').classList.remove('active');document.getElementById('authStep3').classList.add('active');}}else{currentUser=null;document.getElementById('authScreen').classList.remove('hidden');document.getElementById('appRoot').classList.add('hidden');}});
 async function signOutUser(){if(currentUser)await setDoc(doc(db,'users',currentUser.uid),{status:'offline'},{merge:true}).catch(()=>{});Object.values(msgListeners).forEach(u=>u());msgListeners={};await signOut(auth);}
-async function launchApp(){document.getElementById('authScreen').classList.add('hidden');document.getElementById('appRoot').classList.remove('hidden');loadSettings();document.getElementById('headerUser').textContent=myName;document.getElementById('settingPhone').textContent=myPhone;document.getElementById('settingName').textContent=myName;updateStatusUI(myStatus);await setDoc(doc(db,'users',currentUser.uid),{status:'online'},{merge:true}).catch(()=>{});await loadFriends();renderGroups();renderSpeedSend();renderChat();bindRecordBtn();document.querySelectorAll('.app-button').forEach(btn=>btn.addEventListener('click',e=>addRipple(btn,e)));setInterval(runAutoDelete,60000);await initPushNotifications();listenForNotifications();onMessage(messaging,payload=>{showToast('New voice message from '+(payload.data?.senderName||'Someone'));if(selectedTarget&&selectedTarget.uid===payload.data?.senderUid)renderChat();});}
+async function launchApp(){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appRoot').classList.remove('hidden');
+  loadSettings();
+  document.getElementById('headerUser').textContent=myName;
+  document.getElementById('settingPhone').textContent=myPhone;
+  document.getElementById('settingName').textContent=myName;
+  updateStatusUI(myStatus);
+  // Load avatar + custom status from Firestore
+  try{
+    const snap=await getDoc(doc(db,'users',currentUser.uid));
+    if(snap.exists()){
+      myAvatar=snap.data().avatar||'';
+      myCustomStatus=snap.data().customStatus||'';
+      if(myCustomStatus&&document.getElementById('customStatusInput'))
+        document.getElementById('customStatusInput').value=myCustomStatus;
+      updateCustomStatusDisplay();
+    }
+  }catch(e){}
+  renderSettingsAvatar();
+  await setDoc(doc(db,'users',currentUser.uid),{status:'online'},{merge:true}).catch(()=>{});
+  await loadFriends();
+  renderGroups();renderSpeedSend();renderChat();
+  bindRecordBtn();
+  document.querySelectorAll('.app-button').forEach(btn=>btn.addEventListener('click',e=>addRipple(btn,e)));
+  setInterval(runAutoDelete,60000);
+  await initPushNotifications();
+  listenForNotifications();
+  onMessage(messaging,payload=>{
+    playSound('receive');
+    showToast('New voice message from '+(payload.data?.senderName||'Someone'));
+    if(selectedTarget&&selectedTarget.uid===payload.data?.senderUid)renderChat();
+  });
+}
 async function setStatus(s){myStatus=s;updateStatusUI(s);if(currentUser)await setDoc(doc(db,'users',currentUser.uid),{status:s},{merge:true}).catch(()=>{});}
 function updateStatusUI(s){const c=SC[s]||SC.online;const dot=document.getElementById('headerStatusDot');if(dot)dot.style.background=c;document.querySelectorAll('.status-opt').forEach(el=>el.classList.remove('active'));const el=document.getElementById('sopt-'+s);if(el)el.classList.add('active');}
 async function initPushNotifications(){try{if(!('serviceWorker' in navigator))return;const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');const perm=await Notification.requestPermission();if(perm!=='granted')return;const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});}catch(e){console.warn('Push:',e);}}
@@ -454,6 +608,7 @@ function listenForNotifications(){
         }else{
           // Voice message — dismiss immediately
           if(!n.read){
+            playSound('receive');
             if(vis)showToast('New voice message from '+(n.fromName||'someone'));
             else if(Notification.permission==='granted')
               new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});
@@ -541,14 +696,22 @@ function renderNotifPanel(notifs){
 async function sendPushToUser(uid){try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'voice',sentAt:serverTimestamp(),read:false,dismissed:false});}catch(e){}}
 async function sendGroupPush(members){for(const uid of(members||[])){if(uid===currentUser.uid)continue;try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'voice',sentAt:serverTimestamp(),read:false,dismissed:false,isGroup:true});}catch(e){}}}
 async function loadFriends(){friends=[];const snap=await getDocs(collection(db,'users',currentUser.uid,'friends'));snap.forEach(d=>friends.push({...d.data(),uid:d.id}));friends.forEach(f=>subscribeToFriendStatus(f.uid));renderFriends();renderSpeedSend();}
-function subscribeToFriendStatus(fuid){onSnapshot(doc(db,'users',fuid),snap=>{if(!snap.exists())return;const f=friends.find(x=>x.uid===fuid);if(f)f.status=snap.data().status||'offline';renderSpeedSend();renderFriends();});}
+function subscribeToFriendStatus(fuid){onSnapshot(doc(db,'users',fuid),snap=>{if(!snap.exists())return;const f=friends.find(x=>x.uid===fuid);if(f){f.status=snap.data().status||'offline';f.avatar=snap.data().avatar||'';f.customStatus=snap.data().customStatus||'';}renderSpeedSend();renderFriends();});}
 async function confirmAddFriend(){const raw=document.getElementById('friendPhoneInput').value.trim();const nick=document.getElementById('friendNicknameInput').value.trim();const errEl=document.getElementById('addFriendError');const btn=document.getElementById('addFriendBtn');errEl.textContent='';if(!raw){errEl.textContent='Enter a phone number.';return;}const phone=normalizePhone(raw);if(phone===myPhone){errEl.textContent="That's your own number!";return;}btn.disabled=true;btn.textContent='Adding...';try{const q=query(collection(db,'users'),where('phone','==',phone));const snap=await getDocs(q);if(!snap.empty){const fd=snap.docs[0].data(),fuid=snap.docs[0].id;await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||'',addedAt:serverTimestamp()});await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});friends.push({uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||''});subscribeToFriendStatus(fuid);closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast((nick||fd.name)+' added!');}else{const smsBody=encodeURIComponent(myName+' invited you to TellBack: https://hewsonaiden9-sudo.github.io/tellback');window.open('sms:'+phone+'?body='+smsBody,'_blank');const pid='pending_'+phone.replace(/\D/g,'');await setDoc(doc(db,'users',currentUser.uid,'friends',pid),{uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true,addedAt:serverTimestamp()});friends.push({uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true});closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast('Invite sent to '+phone);}}catch(e){errEl.textContent='Error: '+e.message;}finally{btn.disabled=false;btn.textContent='Add';}}
 function showAddFriendModal(){document.getElementById('friendPhoneInput').value='';document.getElementById('friendNicknameInput').value='';document.getElementById('addFriendError').textContent='';openModal('addFriendModal');setTimeout(()=>document.getElementById('friendPhoneInput').focus(),200);}
 async function removeFriend(uid){if(!confirm('Remove this friend?'))return;await deleteDoc(doc(db,'users',currentUser.uid,'friends',uid));friends=friends.filter(f=>f.uid!==uid);if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();}if(msgListeners[uid]){msgListeners[uid]();delete msgListeners[uid];}renderFriends();renderSpeedSend();}
 function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span>'+name+(f.pending?' (pending)':'')+' <small style="opacity:.4;font-size:11px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
 window._rmFriend=removeFriend;
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
-function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];const av=f.isGroup?'GRP':getInitials(name);chip.innerHTML='<div class="chip-avatar">'+av+(!f.isGroup?'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span>':'')+'</div><div class="chip-name">'+name+'</div>';chip.onclick=()=>{
+function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];let avHtml;
+    if(f.isGroup){
+      avHtml='<div class="chip-avatar">GRP</div>';
+    }else if(f.avatar){
+      avHtml='<div class="chip-avatar" style="padding:0;overflow:hidden;"><img src="'+f.avatar+'" class="chip-avatar-img"><span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';
+    }else{
+      avHtml='<div class="chip-avatar">'+getInitials(name)+'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';
+    }
+    chip.innerHTML=avHtml+'<div class="chip-name">'+name+'</div>';chip.onclick=()=>{
   selectedTarget={...f};
   renderSpeedSend();updateSelectedLabel();
   if(f.isGroup)subscribeToGroupMessages(f.uid,f.members||[]);
@@ -563,7 +726,30 @@ function subscribeToGroupMessages(gUid,members){if(msgListeners[gUid])return;con
 async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=msgCache[fuid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 async function markGroupRead(gUid){const cid=groupConvId(gUid);const msgs=msgCache[gUid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 function renderChat(){const history=document.getElementById('chatHistory');const title=document.getElementById('voiceChatTitle');history.innerHTML='';if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';return;}title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);const msgs=msgCache[selectedTarget.uid]||[];if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);else markRead(selectedTarget.uid);setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);}
-function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){const a=document.createElement('audio');a.controls=true;a.preload='auto';a.src=msg.audioBase64;slot.replaceWith(a);}else slot.textContent='No audio data';if(msg.transcript){const t=document.createElement('div');t.className='bubble-transcript';t.textContent='"'+msg.transcript+'"';div.appendChild(t);}if(!msg.pinned&&aT().checked){const ms=msg.sentAt?.toDate?msg.sentAt.toDate().getTime():0;const r=24*60*60*1000-(Date.now()-ms);const exp=document.createElement('div');exp.className='expiry-badge'+(r<7200000?' soon':'')+(r<=0?' expired':'');if(r<=0)exp.textContent='Expired';else{const h=Math.floor(r/3600000),m=Math.floor((r%3600000)/60000);exp.textContent='Expires in '+h+'h '+m+'m';}div.appendChild(exp);}else if(msg.pinned){const p=document.createElement('div');p.className='expiry-badge';p.style.color='var(--primary)';p.textContent='Pinned - kept forever';div.appendChild(p);}const acts=document.createElement('div');acts.className='bubble-actions';const pb=document.createElement('button');pb.className='bub-btn pin';pb.textContent=msg.pinned?'Unpin':'Pin';pb.onclick=()=>togglePin(msg);acts.appendChild(pb);if(isOut){const db2=document.createElement('button');db2.className='bub-btn del';db2.textContent='Delete';db2.onclick=()=>deleteMessage(msg);acts.appendChild(db2);}div.appendChild(acts);return div;}
+function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){
+    const a=document.createElement('audio');a.controls=true;a.preload='auto';a.src=msg.audioBase64;
+    // Mark as listened when played
+    if(!isOut){
+      a.onplay=async()=>{
+        if(!msg.listenedBy?.includes(currentUser.uid)&&msg.firestoreId&&selectedTarget){
+          const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);
+          await updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),
+            {listenedBy:[...(msg.listenedBy||[]),currentUser.uid]}).catch(()=>{});
+        }
+      };
+    }
+    slot.replaceWith(a);
+  }else slot.textContent='No audio data';if(msg.transcript){const t=document.createElement('div');t.className='bubble-transcript';t.textContent='"'+msg.transcript+'"';div.appendChild(t);}
+  // Read receipt — show on outgoing messages
+  if(isOut&&!selectedTarget?.isGroup){
+    const rr=document.createElement('div');
+    const listened=msg.listenedBy&&msg.listenedBy.some(uid=>uid!==currentUser.uid);
+    const delivered=msg.readBy&&msg.readBy.some(uid=>uid!==currentUser.uid);
+    rr.className='read-receipt'+(listened?' seen':'');
+    rr.textContent=listened?'👂 Listened':(delivered?'✓✓ Delivered':'✓ Sent');
+    div.appendChild(rr);
+  }
+  if(!msg.pinned&&aT().checked){const ms=msg.sentAt?.toDate?msg.sentAt.toDate().getTime():0;const r=24*60*60*1000-(Date.now()-ms);const exp=document.createElement('div');exp.className='expiry-badge'+(r<7200000?' soon':'')+(r<=0?' expired':'');if(r<=0)exp.textContent='Expired';else{const h=Math.floor(r/3600000),m=Math.floor((r%3600000)/60000);exp.textContent='Expires in '+h+'h '+m+'m';}div.appendChild(exp);}else if(msg.pinned){const p=document.createElement('div');p.className='expiry-badge';p.style.color='var(--primary)';p.textContent='Pinned - kept forever';div.appendChild(p);}const acts=document.createElement('div');acts.className='bubble-actions';const pb=document.createElement('button');pb.className='bub-btn pin';pb.textContent=msg.pinned?'Unpin':'Pin';pb.onclick=()=>togglePin(msg);acts.appendChild(pb);if(isOut){const db2=document.createElement('button');db2.className='bub-btn del';db2.textContent='Delete';db2.onclick=()=>deleteMessage(msg);acts.appendChild(db2);}div.appendChild(acts);return div;}
 async function togglePin(msg){if(!selectedTarget||!msg.firestoreId)return;const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);await updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),{pinned:!msg.pinned});}
 async function deleteMessage(msg){if(!selectedTarget||!msg.firestoreId)return;const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);await deleteDoc(doc(db,'conversations',cid,'messages',msg.firestoreId));}
 async function runAutoDelete(){if(!aT().checked||!currentUser)return;const cutoff=Date.now()-24*60*60*1000;for(const f of friends){const cid=convId(currentUser.uid,f.uid);try{const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));for(const d of snap.docs){const m=d.data();if(m.pinned)continue;const ms=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;if(ms>0&&ms<cutoff)await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});}}catch(e){}}for(const g of groups){const gUid='grp_'+g.name,cid=groupConvId(gUid);try{const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));for(const d of snap.docs){const m=d.data();if(m.pinned||m.senderUid!==currentUser.uid)continue;const ms=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;if(ms>0&&ms<cutoff)await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});}}catch(e){}}}
@@ -683,13 +869,13 @@ let recognition=null,liveTranscript='';
 function setupRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}liveTranscript=(liveTranscript+f).trim();};rec.onerror=()=>{};return rec;}
 let mediaRecorder=null,chunks=[],recStream=null;
 function getBestMime(){const a=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];return a.find(m=>MediaRecorder.isTypeSupported(m))||'';}
-function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||'error'));btn.disabled=false;}if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}};reader.readAsDataURL(blob);};mediaRecorder.stop();}function stop(e){e.preventDefault();if(!pressed)return;if(!started){shouldStop=true;return;}doStop();}btn.addEventListener('mousedown',start);btn.addEventListener('mouseup',stop);btn.addEventListener('mouseleave',stop);btn.addEventListener('touchstart',start,{passive:false});btn.addEventListener('touchend',stop,{passive:false});btn.addEventListener('touchcancel',stop,{passive:false});}
+function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});playSound('send');btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||'error'));btn.disabled=false;}if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}};reader.readAsDataURL(blob);};mediaRecorder.stop();}function stop(e){e.preventDefault();if(!pressed)return;if(!started){shouldStop=true;return;}doStop();}btn.addEventListener('mousedown',start);btn.addEventListener('mouseup',stop);btn.addEventListener('mouseleave',stop);btn.addEventListener('touchstart',start,{passive:false});btn.addEventListener('touchend',stop,{passive:false});btn.addEventListener('touchcancel',stop,{passive:false});}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
 try{recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:async()=>{const raw=document.getElementById('phoneInput').value.trim();const errEl=document.getElementById('authError1');const btn=document.getElementById('sendCodeBtn');if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}const phone=normalizePhone(raw);if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short.';return;}btn.disabled=true;btn.textContent='Sending...';try{confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);document.getElementById('otpDesc').textContent='Code sent to '+phone;document.getElementById('authStep1').classList.remove('active');document.getElementById('authStep2').classList.add('active');setTimeout(()=>document.getElementById('otp0').focus(),200);}catch(e){console.error(e);errEl.textContent=e.message||'Failed to send. Check your number.';try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;}finally{btn.disabled=false;btn.textContent='Send Code';}},'expired-callback':()=>{showToast('Check expired - please try again');recaptchaVerifier=null;}});await recaptchaVerifier.render();}catch(e){console.warn('reCAPTCHA:',e);}
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;
 </script>
 </body>
 </html>
