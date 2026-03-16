@@ -146,11 +146,15 @@ body.dark .item:hover{background:rgba(255,255,255,.05);}
 input:checked+.slider{background:linear-gradient(180deg,#4a8fff,#2563eb);}
 input:checked+.slider:before{transform:translateX(20px);}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;background:linear-gradient(180deg,#1e2540 0%,#141830 100%);border-top:2px solid #0a0e20;display:flex;justify-content:space-around;padding:8px 0 calc(8px + var(--safe-bottom));z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);}
-.nav-btn{cursor:pointer;padding:6px 12px;border-radius:10px;transition:background .15s;opacity:.45;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;min-width:56px;}
-.nav-icon{font-size:21px;line-height:1;}
+.nav-btn{cursor:pointer;padding:6px 12px;border-radius:10px;transition:background .15s,opacity .15s;opacity:.5;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;min-width:56px;}
+.nav-icon{font-size:21px;line-height:1;display:flex;align-items:center;justify-content:center;}
+.nav-icon svg{width:26px;height:26px;transition:filter .15s;}
+.nav-btn.active .nav-icon svg{filter:drop-shadow(0 0 4px rgba(37,99,235,.5));}
+.nav-btn:not(.active) .nav-icon svg stop[stop-color="#5a9fff"],.nav-btn:not(.active) .nav-icon svg stop[stop-color="#1a50cc"]{stop-opacity:.5;}
 .nav-label{font-size:10px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.3px;color:#8899cc;}
 .nav-btn.active{opacity:1;background:rgba(80,140,255,.12);border-radius:10px;}
 .nav-btn.active .nav-label{color:#60a0ff;}
+.nav-btn.active svg{filter:drop-shadow(0 0 4px rgba(96,160,255,.7));}
 .nav-btn.active::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:#2563eb;animation:dotPop .2s cubic-bezier(.34,1.56,.64,1) both;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -332,11 +336,164 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
   </div>
 </div>
 <div class="bottom-nav">
-  <div class="nav-btn active" onclick="showPage('homePage',this)"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-  <div class="nav-btn" onclick="showPage('friendsPage',this)"><div class="nav-icon">👤</div><div class="nav-label">Friends</div></div>
-  <div class="nav-btn" onclick="showPage('groupsPage',this)"><div class="nav-icon">👥</div><div class="nav-label">Groups</div></div>
-  <div class="nav-btn" onclick="showPage('settingsPage',this)"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
-  <div class="nav-btn" id="notifNavBtn" onclick="showPage('notifPage',this)"><div class="nav-icon" style="position:relative;display:inline-block;">🔔<span id="notifNavDot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--card);"></span></div><div class="nav-label">Alerts</div></div>
+
+  <!-- HOME -->
+  <div class="nav-btn active" onclick="showPage('homePage',this)">
+    <div class="nav-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hg1" x1="13" y1="2" x2="13" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5a9fff"/>
+            <stop offset="100%" stop-color="#1a50cc"/>
+          </linearGradient>
+          <linearGradient id="hg2" x1="13" y1="2" x2="13" y2="13" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="white" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="hsh"><feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0a2060" flood-opacity=".35"/></filter>
+        </defs>
+        <g filter="url(#hsh)">
+          <!-- House body -->
+          <path d="M13 3.5L3 11.5V23H10V17H16V23H23V11.5L13 3.5Z" fill="url(#hg1)" rx="1"/>
+          <!-- Door -->
+          <rect x="10.5" y="17.5" width="5" height="5" rx="1" fill="#0a30a0" opacity=".6"/>
+          <!-- Gloss -->
+          <path d="M13 3.5L3 11.5H23L13 3.5Z" fill="url(#hg2)"/>
+          <!-- Chimney -->
+          <rect x="16" y="5.5" width="2.5" height="5" rx=".5" fill="#1a50cc"/>
+        </g>
+      </svg>
+    </div>
+    <div class="nav-label">Home</div>
+  </div>
+
+  <!-- FRIENDS -->
+  <div class="nav-btn" onclick="showPage('friendsPage',this)">
+    <div class="nav-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="fg1" x1="13" y1="1" x2="13" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5a9fff"/>
+            <stop offset="100%" stop-color="#1a50cc"/>
+          </linearGradient>
+          <linearGradient id="fg2" x1="13" y1="1" x2="13" y2="13" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="white" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="fsh"><feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0a2060" flood-opacity=".35"/></filter>
+        </defs>
+        <g filter="url(#fsh)">
+          <!-- Head circle -->
+          <circle cx="13" cy="9" r="5.5" fill="url(#fg1)"/>
+          <!-- Gloss on head -->
+          <ellipse cx="12" cy="7" rx="3" ry="2" fill="url(#fg2)"/>
+          <!-- Body/shoulders -->
+          <path d="M3 24C3 18.477 7.477 15 13 15C18.523 15 23 18.477 23 24" fill="url(#fg1)" stroke="none"/>
+          <!-- Gloss on body -->
+          <path d="M5 21C6.5 17.5 9.5 15.5 13 15.5" stroke="white" stroke-width=".8" stroke-opacity=".4" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <div class="nav-label">Friends</div>
+  </div>
+
+  <!-- GROUPS -->
+  <div class="nav-btn" onclick="showPage('groupsPage',this)">
+    <div class="nav-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gg1" x1="13" y1="1" x2="13" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5a9fff"/>
+            <stop offset="100%" stop-color="#1a50cc"/>
+          </linearGradient>
+          <linearGradient id="gg2" x1="13" y1="1" x2="13" y2="12" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="white" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="gsh"><feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0a2060" flood-opacity=".35"/></filter>
+        </defs>
+        <g filter="url(#gsh)">
+          <!-- Left person -->
+          <circle cx="8.5" cy="9.5" r="4" fill="url(#gg1)" opacity=".85"/>
+          <path d="M1 24C1 19.582 4.582 17 8.5 17C10 17 11.4 17.4 12.5 18.1" fill="url(#gg1)" opacity=".85"/>
+          <!-- Right person -->
+          <circle cx="17.5" cy="9.5" r="4" fill="url(#gg1)" opacity=".85"/>
+          <path d="M25 24C25 19.582 21.418 17 17.5 17C16 17 14.6 17.4 13.5 18.1" fill="url(#gg1)" opacity=".85"/>
+          <!-- Center overlap body -->
+          <path d="M8 24C8 19.029 10.239 16.5 13 16.5C15.761 16.5 18 19.029 18 24" fill="url(#gg1)"/>
+          <!-- Center head -->
+          <circle cx="13" cy="9" r="4.5" fill="url(#gg1)"/>
+          <!-- Gloss -->
+          <ellipse cx="12" cy="7.5" rx="2.5" ry="1.5" fill="url(#gg2)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="nav-label">Groups</div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="nav-btn" onclick="showPage('settingsPage',this)">
+    <div class="nav-icon">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="sg1" x1="13" y1="1" x2="13" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5a9fff"/>
+            <stop offset="100%" stop-color="#1a50cc"/>
+          </linearGradient>
+          <linearGradient id="sg2" x1="13" y1="1" x2="13" y2="14" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="white" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="ssh"><feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0a2060" flood-opacity=".35"/></filter>
+        </defs>
+        <g filter="url(#ssh)">
+          <!-- Gear outer ring -->
+          <path d="M13 2L14.8 4.6C15.6 4.4 16.4 4.4 17.2 4.6L19 2L21.8 4.6L20.8 7.4C21.4 8 21.8 8.8 22.1 9.6L25 10L25 14L22.1 14.4C21.8 15.2 21.4 16 20.8 16.6L21.8 19.4L19 22L17.2 19.4C16.4 19.6 15.6 19.6 14.8 19.4L13 22L10.2 19.4L11.2 16.6C10.6 16 10.2 15.2 9.9 14.4L7 14L7 10L9.9 9.6C10.2 8.8 10.6 8 11.2 7.4L10.2 4.6L13 2Z" fill="url(#sg1)"/>
+          <!-- Center hole -->
+          <circle cx="13" cy="12" r="3.5" fill="#0a30a0" opacity=".7"/>
+          <!-- Inner gloss -->
+          <circle cx="12" cy="11" r="1.5" fill="white" opacity=".2"/>
+          <!-- Top gloss -->
+          <path d="M10.5 4.5C11.5 3.2 12.2 2.4 13 2L14.8 4.6C14 4.8 13.2 5.2 12.5 5.8L10.5 4.5Z" fill="url(#sg2)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="nav-label">Settings</div>
+  </div>
+
+  <!-- ALERTS / NOTIFICATIONS -->
+  <div class="nav-btn" id="notifNavBtn" onclick="showPage('notifPage',this)">
+    <div class="nav-icon" style="position:relative;display:inline-flex;align-items:center;justify-content:center;">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ng1" x1="13" y1="1" x2="13" y2="26" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5a9fff"/>
+            <stop offset="100%" stop-color="#1a50cc"/>
+          </linearGradient>
+          <linearGradient id="ng2" x1="13" y1="1" x2="13" y2="12" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="white" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <filter id="nsh"><feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#0a2060" flood-opacity=".35"/></filter>
+        </defs>
+        <g filter="url(#nsh)">
+          <!-- Bell body -->
+          <path d="M13 2C13 2 7 6 7 14V18H19V14C19 6 13 2 13 2Z" fill="url(#ng1)"/>
+          <!-- Bell bottom flare -->
+          <path d="M6 18H20L21 20H5L6 18Z" fill="url(#ng1)"/>
+          <!-- Clapper -->
+          <circle cx="13" cy="22" r="2" fill="url(#ng1)"/>
+          <!-- Top knob -->
+          <circle cx="13" cy="2.5" r="1.5" fill="#1a50cc"/>
+          <!-- Gloss -->
+          <path d="M13 2.5C13 2.5 9 5.5 8.5 10C10 8 12 7 13 6.5C14 7 16 8 17.5 10C17 5.5 13 2.5 13 2.5Z" fill="url(#ng2)"/>
+        </g>
+      </svg>
+      <span id="notifNavDot" style="display:none;position:absolute;top:0px;right:0px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--card);box-shadow:0 0 4px rgba(239,68,68,.6);"></span>
+    </div>
+    <div class="nav-label">Alerts</div>
+  </div>
+
 </div>
 </div>
 <div class="modal-overlay" id="addFriendModal">
