@@ -130,9 +130,9 @@ body.dark .item:hover{background:rgba(255,255,255,.05);}
 .app-button:disabled{opacity:.5;cursor:not-allowed;}
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:rippleAnim .5s linear;pointer-events:none;}
 .status-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.status-opt{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;transition:border-color .15s,background .15s;flex:1;min-width:120px;background:linear-gradient(180deg,#ffffff 0%,#f2f4fa 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
-.status-opt:hover{background:linear-gradient(180deg,#f0f4ff 0%,#e8eeff 100%);}
-.status-opt.active{border-color:var(--primary);background:linear-gradient(180deg,#ebf2ff 0%,#dce8ff 100%);color:var(--primary);}
+.status-opt{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;transition:border-color .15s,background .15s,color .15s;flex:1;min-width:120px;background:var(--card);color:var(--text);}
+.status-opt:hover{background:var(--primary-soft);}
+.status-opt.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary);}
 .status-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
 .s-online{background:#22c55e;}.s-away{background:#f59e0b;}.s-busy{background:#ef4444;}.s-offline{background:#94a3b8;}
 .setting-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--border);}
@@ -165,6 +165,17 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
 .empty{text-align:center;padding:24px 16px;color:var(--sub);font-size:13px;}
 .empty .emoji{font-size:28px;margin-bottom:6px;}
 .hidden{display:none!important;}
+/* notification items */
+.notif-item{padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid var(--border);background:var(--card);animation:itemIn .2s ease both;}
+.notif-item.invite{border-left:3px solid var(--primary);}
+.notif-item.joined{border-left:3px solid var(--success);}
+.notif-item.voice{border-left:3px solid var(--sub);}
+.notif-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.notif-sub{font-size:12px;color:var(--sub);margin-bottom:8px;}
+.notif-actions{display:flex;gap:8px;}
+.notif-btn{border:none;cursor:pointer;padding:6px 14px;border-radius:8px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;transition:background .15s;}
+.notif-btn.accept{background:var(--primary);color:white;}
+.notif-btn.reject{background:rgba(220,38,38,.1);color:var(--danger);}
 #toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(8px);background:linear-gradient(180deg,#1e2a48,#141e38);color:#e0eaff;padding:9px 18px;border-radius:12px;font-size:13px;font-weight:600;font-family:'Syne',sans-serif;opacity:0;transition:opacity .22s,transform .22s;z-index:300;pointer-events:none;white-space:nowrap;border:1px solid rgba(80,120,220,.3);box-shadow:0 4px 16px rgba(0,0,0,.4);}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .transcribing{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px;justify-content:center;}
@@ -310,6 +321,11 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
     <div class="setting-row"><div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div><label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
     <div class="setting-row"><div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div><label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
   </div>
+  <!-- NOTIFICATIONS PANEL -->
+  <div class="card">
+    <div class="card-title">Notifications <span class="card-title-right" id="notifBadge" style="display:none;background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:10px;"></span></div>
+    <div id="notifList"><div class="empty" style="padding:16px 0;"><div class="emoji">🔔</div>No notifications</div></div>
+  </div>
   <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.5px;">TELLBACK v2.0 - FIREBASE</div>
 </div>
 <div class="bottom-nav">
@@ -369,9 +385,83 @@ async function launchApp(){document.getElementById('authScreen').classList.add('
 async function setStatus(s){myStatus=s;updateStatusUI(s);if(currentUser)await setDoc(doc(db,'users',currentUser.uid),{status:s},{merge:true}).catch(()=>{});}
 function updateStatusUI(s){const c=SC[s]||SC.online;const dot=document.getElementById('headerStatusDot');if(dot)dot.style.background=c;document.querySelectorAll('.status-opt').forEach(el=>el.classList.remove('active'));const el=document.getElementById('sopt-'+s);if(el)el.classList.add('active');}
 async function initPushNotifications(){try{if(!('serviceWorker' in navigator))return;const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');const perm=await Notification.requestPermission();if(perm!=='granted')return;const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});}catch(e){console.warn('Push:',e);}}
-function listenForNotifications(){if(!currentUser)return;const q=query(collection(db,'notifications'),where('toUid','==',currentUser.uid),where('read','==',false));onSnapshot(q,snap=>{snap.docChanges().forEach(async change=>{if(change.type==='added'){const n=change.doc.data();if(document.visibilityState==='visible')showToast('New voice message from '+(n.fromName||'someone'));else if(Notification.permission==='granted')new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});await updateDoc(doc(db,'notifications',change.doc.id),{read:true}).catch(()=>{});const dot=document.getElementById('dot-'+n.fromUid);if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');if(selectedTarget&&selectedTarget.uid===n.fromUid)renderChat();}});});}
-async function sendPushToUser(uid){try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,sentAt:serverTimestamp(),read:false});}catch(e){}}
-async function sendGroupPush(members){for(const uid of(members||[])){if(uid===currentUser.uid)continue;try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,sentAt:serverTimestamp(),read:false,isGroup:true});}catch(e){}}}
+function listenForNotifications(){
+  if(!currentUser)return;
+  // Listen for ALL unread+undismissed notifications for this user
+  const q=query(collection(db,'notifications'),where('toUid','==',currentUser.uid),where('dismissed','==',false));
+  onSnapshot(q,snap=>{
+    const allNotifs=[];
+    snap.forEach(d=>allNotifs.push({id:d.id,...d.data()}));
+    renderNotifPanel(allNotifs);
+    // Handle new additions
+    snap.docChanges().forEach(async change=>{
+      if(change.type==='added'){
+        const n=change.doc.data();
+        if(n.type==='group_invite'){
+          showToast('👥 '+n.fromName+' invited you to "'+n.groupName+'"');
+          if(Notification.permission==='granted'&&document.visibilityState!=='visible')
+            new Notification('TellBack',{body:n.fromName+' invited you to join "'+n.groupName+'"',icon:'./icon-192.png'});
+        }else if(n.type==='group_joined'){
+          showToast('✅ '+n.fromName+' joined "'+n.groupName+'"');
+        }else{
+          // Voice message notification — mark read immediately
+          if(!n.read){
+            if(document.visibilityState==='visible')showToast('New voice message from '+(n.fromName||'someone'));
+            else if(Notification.permission==='granted')new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});
+            await updateDoc(doc(db,'notifications',change.doc.id),{read:true,dismissed:true}).catch(()=>{});
+            const dot=document.getElementById('dot-'+n.fromUid);
+            if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');
+            if(selectedTarget&&selectedTarget.uid===n.fromUid)renderChat();
+          }
+        }
+      }
+    });
+  });
+}
+
+function renderNotifPanel(notifs){
+  const list=document.getElementById('notifList');
+  const badge=document.getElementById('notifBadge');
+  if(!list)return;
+  // Only show non-voice, non-dismissed notifs in panel
+  const panel=notifs.filter(n=>n.type==='group_invite'||n.type==='group_joined');
+  if(!panel.length){list.innerHTML='<div class="empty" style="padding:16px 0;"><div class="emoji">🔔</div>No notifications</div>';badge.style.display='none';return;}
+  badge.style.display='inline';badge.textContent=panel.length;
+  list.innerHTML='';
+  panel.forEach(n=>{
+    const div=document.createElement('div');
+    div.className='notif-item '+(n.type==='group_invite'?'invite':'joined');
+    if(n.type==='group_invite'){
+      div.innerHTML='<div class="notif-title">👥 Group Invite</div><div class="notif-sub"><b>'+n.fromName+'</b> invited you to join <b>"'+n.groupName+'"</b></div>';
+      const acts=document.createElement('div');acts.className='notif-actions';
+      const acc=document.createElement('button');acc.className='notif-btn accept';acc.textContent='Join Group';
+      acc.onclick=async()=>{
+        // Add to local groups
+        const already=groups.find(g=>g.groupId===n.groupId);
+        if(!already){
+          groups.push({name:n.groupName,members:n.members||[],memberNames:n.memberNames||[],groupId:n.groupId});
+          saveGroups();renderGroups();renderSpeedSend();
+        }
+        // Notify the creator
+        try{await addDoc(collection(db,'notifications'),{toUid:n.fromUid,fromUid:currentUser.uid,fromName:myName,type:'group_joined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}
+        // Dismiss this invite
+        await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
+        showToast('✅ Joined "'+n.groupName+'"');
+      };
+      const rej=document.createElement('button');rej.className='notif-btn reject';rej.textContent='Decline';
+      rej.onclick=async()=>{await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});showToast('Declined invite');};
+      acts.appendChild(acc);acts.appendChild(rej);div.appendChild(acts);
+    }else{
+      div.innerHTML='<div class="notif-title">✅ Member Joined</div><div class="notif-sub"><b>'+n.fromName+'</b> joined your group <b>"'+n.groupName+'"</b></div>';
+      const dis=document.createElement('button');dis.className='notif-btn reject';dis.textContent='Dismiss';
+      dis.onclick=async()=>{await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});};
+      const acts=document.createElement('div');acts.className='notif-actions';acts.appendChild(dis);div.appendChild(acts);
+    }
+    list.appendChild(div);
+  });
+}
+async function sendPushToUser(uid){try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'voice',sentAt:serverTimestamp(),read:false,dismissed:false});}catch(e){}}
+async function sendGroupPush(members){for(const uid of(members||[])){if(uid===currentUser.uid)continue;try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'voice',sentAt:serverTimestamp(),read:false,dismissed:false,isGroup:true});}catch(e){}}}
 async function loadFriends(){friends=[];const snap=await getDocs(collection(db,'users',currentUser.uid,'friends'));snap.forEach(d=>friends.push({...d.data(),uid:d.id}));friends.forEach(f=>subscribeToFriendStatus(f.uid));renderFriends();renderSpeedSend();}
 function subscribeToFriendStatus(fuid){onSnapshot(doc(db,'users',fuid),snap=>{if(!snap.exists())return;const f=friends.find(x=>x.uid===fuid);if(f)f.status=snap.data().status||'offline';renderSpeedSend();renderFriends();});}
 async function confirmAddFriend(){const raw=document.getElementById('friendPhoneInput').value.trim();const nick=document.getElementById('friendNicknameInput').value.trim();const errEl=document.getElementById('addFriendError');const btn=document.getElementById('addFriendBtn');errEl.textContent='';if(!raw){errEl.textContent='Enter a phone number.';return;}const phone=normalizePhone(raw);if(phone===myPhone){errEl.textContent="That's your own number!";return;}btn.disabled=true;btn.textContent='Adding...';try{const q=query(collection(db,'users'),where('phone','==',phone));const snap=await getDocs(q);if(!snap.empty){const fd=snap.docs[0].data(),fuid=snap.docs[0].id;await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||'',addedAt:serverTimestamp()});await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});friends.push({uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||''});subscribeToFriendStatus(fuid);closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast((nick||fd.name)+' added!');}else{const smsBody=encodeURIComponent(myName+' invited you to TellBack: https://hewsonaiden9-sudo.github.io/tellback');window.open('sms:'+phone+'?body='+smsBody,'_blank');const pid='pending_'+phone.replace(/\D/g,'');await setDoc(doc(db,'users',currentUser.uid,'friends',pid),{uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true,addedAt:serverTimestamp()});friends.push({uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true});closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast('Invite sent to '+phone);}}catch(e){errEl.textContent='Error: '+e.message;}finally{btn.disabled=false;btn.textContent='Add';}}
@@ -397,7 +487,29 @@ function saveGroups(){localStorage.setItem('tb_groups',JSON.stringify(groups));}
 function renderGroups(){const list=document.getElementById('groupsList'),empty=document.getElementById('groupsEmpty');if(!list)return;list.innerHTML='';if(!groups.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');groups.forEach((g,i)=>{const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span>Group: '+g.name+' <small style="opacity:.4;font-size:11px;">('+((g.memberNames||g.members).join(', '))+')</small></span><div class="item-actions"><button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button><button class="action-btn remove" onclick="window._dlG('+i+')">Remove</button></div>';list.appendChild(div);});}
 function toggleCreateGroup(){document.getElementById('createGroupPanel').classList.toggle('hidden');renderGroupCheckboxes();}
 function renderGroupCheckboxes(){const c=document.getElementById('groupFriendCheckboxes');if(!c)return;c.innerHTML='';friends.forEach(f=>{const l=document.createElement('label');l.className='grp-check-item';l.innerHTML='<input type="checkbox" value="'+f.uid+'"> '+(f.nickname||f.name);c.appendChild(l);});}
-function createGroup(){const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);const name=document.getElementById('groupNameInput').value.trim();if(sel.length<2||!name){showToast('Need a name and at least 2 friends');return;}const memberNames=sel.map(uid=>{const f=friends.find(x=>x.uid===uid);return f?f.nickname||f.name:uid;});groups.push({name,members:sel,memberNames});document.getElementById('groupNameInput').value='';saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();showToast('Group created');}
+async function createGroup(){
+  const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
+  const name=document.getElementById('groupNameInput').value.trim();
+  if(sel.length<2||!name){showToast('Need a name and at least 2 friends');return;}
+  const memberNames=sel.map(uid=>{const f=friends.find(x=>x.uid===uid);return f?f.nickname||f.name:uid;});
+  // Include creator in members
+  const allMembers=[...new Set([currentUser.uid,...sel])];
+  const groupId='grp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  groups.push({name,members:allMembers,memberNames,groupId});
+  document.getElementById('groupNameInput').value='';
+  saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();
+  // Send group invite notifications to each selected member via Firestore
+  for(const uid of sel){
+    try{
+      await addDoc(collection(db,'notifications'),{
+        toUid:uid,fromUid:currentUser.uid,fromName:myName,
+        type:'group_invite',groupName:name,groupId,
+        members:allMembers,memberNames,
+        sentAt:serverTimestamp(),read:false,dismissed:false
+      });
+    }catch(e){console.warn('Group invite push failed:',e);}
+  }
+  showToast('Group created — invites sent!');}
 window._rnG=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
 window._dlG=i=>{if(!confirm('Delete "'+groups[i].name+'"?'))return;groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();};
 function showPage(id,btn){document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
@@ -414,7 +526,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
 try{recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:async()=>{const raw=document.getElementById('phoneInput').value.trim();const errEl=document.getElementById('authError1');const btn=document.getElementById('sendCodeBtn');if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}const phone=normalizePhone(raw);if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short.';return;}btn.disabled=true;btn.textContent='Sending...';try{confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);document.getElementById('otpDesc').textContent='Code sent to '+phone;document.getElementById('authStep1').classList.remove('active');document.getElementById('authStep2').classList.add('active');setTimeout(()=>document.getElementById('otp0').focus(),200);}catch(e){console.error(e);errEl.textContent=e.message||'Failed to send. Check your number.';try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;}finally{btn.disabled=false;btn.textContent='Send Code';}},'expired-callback':()=>{showToast('Check expired - please try again');recaptchaVerifier=null;}});await recaptchaVerifier.render();}catch(e){console.warn('reCAPTCHA:',e);}
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;
 </script>
 </body>
 </html>
