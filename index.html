@@ -417,27 +417,46 @@ function updateStatusUI(s){const c=SC[s]||SC.online;const dot=document.getElemen
 async function initPushNotifications(){try{if(!('serviceWorker' in navigator))return;const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');const perm=await Notification.requestPermission();if(perm!=='granted')return;const token=await getToken(messaging,{vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});if(token)await setDoc(doc(db,'users',currentUser.uid),{fcmTokens:{[token]:true}},{merge:true});}catch(e){console.warn('Push:',e);}}
 function listenForNotifications(){
   if(!currentUser)return;
-  // Listen for ALL unread+undismissed notifications for this user
   const q=query(collection(db,'notifications'),where('toUid','==',currentUser.uid),where('dismissed','==',false));
   onSnapshot(q,snap=>{
     const allNotifs=[];
     snap.forEach(d=>allNotifs.push({id:d.id,...d.data()}));
     renderNotifPanel(allNotifs);
-    // Handle new additions
     snap.docChanges().forEach(async change=>{
       if(change.type==='added'){
         const n=change.doc.data();
+        const vis=document.visibilityState==='visible';
         if(n.type==='group_invite'){
           showToast('👥 '+n.fromName+' invited you to "'+n.groupName+'"');
-          if(Notification.permission==='granted'&&document.visibilityState!=='visible')
-            new Notification('TellBack',{body:n.fromName+' invited you to join "'+n.groupName+'"',icon:'./icon-192.png'});
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' invited you to "'+n.groupName+'"',icon:'./icon-192.png'});
         }else if(n.type==='group_joined'){
           showToast('✅ '+n.fromName+' joined "'+n.groupName+'"');
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' joined your group "'+n.groupName+'"',icon:'./icon-192.png'});
+        }else if(n.type==='group_declined'){
+          showToast('❌ '+n.fromName+' declined "'+n.groupName+'"');
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' declined your invite to "'+n.groupName+'"',icon:'./icon-192.png'});
+        }else if(n.type==='group_left'){
+          showToast('👋 '+n.fromName+' left "'+n.groupName+'"');
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' left the group "'+n.groupName+'"',icon:'./icon-192.png'});
+          // Remove them from local group member list
+          const gIdx=groups.findIndex(g=>(g.groupId||g.name)===n.groupId);
+          if(gIdx>-1){
+            groups[gIdx].members=(groups[gIdx].members||[]).filter(uid=>uid!==n.fromUid);
+            const fi=friends.find(f=>f.uid===n.fromUid);
+            const fname=fi?fi.nickname||fi.name:n.fromName;
+            groups[gIdx].memberNames=(groups[gIdx].memberNames||[]).filter(nm=>nm!==fname);
+            saveGroups();renderGroups();renderSpeedSend();
+          }
         }else{
-          // Voice message notification — mark read immediately
+          // Voice message — dismiss immediately
           if(!n.read){
-            if(document.visibilityState==='visible')showToast('New voice message from '+(n.fromName||'someone'));
-            else if(Notification.permission==='granted')new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});
+            if(vis)showToast('New voice message from '+(n.fromName||'someone'));
+            else if(Notification.permission==='granted')
+              new Notification('TellBack',{body:(n.fromName||'Someone')+' sent you a voice message',icon:'./icon-192.png',tag:'tb-'+n.fromUid});
             await updateDoc(doc(db,'notifications',change.doc.id),{read:true,dismissed:true}).catch(()=>{});
             const dot=document.getElementById('dot-'+n.fromUid);
             if(dot&&(!selectedTarget||selectedTarget.uid!==n.fromUid))dot.classList.add('show');
@@ -454,7 +473,8 @@ function renderNotifPanel(notifs){
   const badge=document.getElementById('notifBadge');
   const navDot=document.getElementById('notifNavDot');
   if(!list)return;
-  const panel=notifs.filter(n=>n.type==='group_invite'||n.type==='group_joined');
+  const PANEL_TYPES=['group_invite','group_joined','group_declined','group_left'];
+  const panel=notifs.filter(n=>PANEL_TYPES.includes(n.type));
   if(!panel.length){
     list.innerHTML='<div class="empty" style="padding:20px 0;"><div class="emoji">🔔</div>No notifications yet</div>';
     if(badge)badge.style.display='none';
@@ -466,29 +486,51 @@ function renderNotifPanel(notifs){
   list.innerHTML='';
   panel.forEach(n=>{
     const div=document.createElement('div');
-    div.className='notif-item '+(n.type==='group_invite'?'invite':'joined');
+    const typeMap={
+      group_invite:{cls:'invite',title:'👥 Group Invite'},
+      group_joined:{cls:'joined',title:'✅ Member Joined'},
+      group_declined:{cls:'invite',title:'❌ Invite Declined'},
+      group_left:{cls:'joined',title:'👋 Member Left'}
+    };
+    const tm=typeMap[n.type]||{cls:'joined',title:'🔔 Notification'};
+    div.className='notif-item '+tm.cls;
+    div.innerHTML='<div class="notif-title">'+tm.title+'</div>';
+
     if(n.type==='group_invite'){
-      div.innerHTML='<div class="notif-title">👥 Group Invite</div><div class="notif-sub"><b>'+n.fromName+'</b> invited you to join <b>"'+n.groupName+'"</b></div>';
+      div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> invited you to join <b>"'+n.groupName+'"</b></div>';
       const acts=document.createElement('div');acts.className='notif-actions';
       const acc=document.createElement('button');acc.className='notif-btn accept';acc.textContent='Join Group';
       acc.onclick=async()=>{
-        // Add to local groups
-        const already=groups.find(g=>g.groupId===n.groupId);
+        const already=groups.find(g=>g.groupId===n.groupId||g.name===n.groupName);
         if(!already){
-          groups.push({name:n.groupName,members:n.members||[],memberNames:n.memberNames||[],groupId:n.groupId});
+          groups.push({name:n.groupName,members:n.members||[currentUser.uid],memberNames:n.memberNames||[myName],groupId:n.groupId});
           saveGroups();renderGroups();renderSpeedSend();
         }
-        // Notify the creator
-        try{await addDoc(collection(db,'notifications'),{toUid:n.fromUid,fromUid:currentUser.uid,fromName:myName,type:'group_joined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}
-        // Dismiss this invite
+        // Notify ALL current group members that this person joined
+        const allMembers=n.members||[];
+        for(const uid of allMembers){
+          if(uid===currentUser.uid)continue;
+          try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'group_joined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}
+        }
         await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
         showToast('✅ Joined "'+n.groupName+'"');
       };
       const rej=document.createElement('button');rej.className='notif-btn reject';rej.textContent='Decline';
-      rej.onclick=async()=>{await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});showToast('Declined invite');};
+      rej.onclick=async()=>{
+        // Notify the inviter of the decline
+        try{await addDoc(collection(db,'notifications'),{toUid:n.fromUid,fromUid:currentUser.uid,fromName:myName,type:'group_declined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}
+        await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
+        showToast('Declined invite to "'+n.groupName+'"');
+      };
       acts.appendChild(acc);acts.appendChild(rej);div.appendChild(acts);
     }else{
-      div.innerHTML='<div class="notif-title">✅ Member Joined</div><div class="notif-sub"><b>'+n.fromName+'</b> joined your group <b>"'+n.groupName+'"</b></div>';
+      // joined / declined / left — just show info + dismiss
+      if(n.type==='group_joined')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> joined your group <b>"'+n.groupName+'"</b></div>';
+      else if(n.type==='group_declined')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> declined your invite to <b>"'+n.groupName+'"</b></div>';
+      else if(n.type==='group_left')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> left the group <b>"'+n.groupName+'"</b></div>';
       const dis=document.createElement('button');dis.className='notif-btn reject';dis.textContent='Dismiss';
       dis.onclick=async()=>{await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});};
       const acts=document.createElement('div');acts.className='notif-actions';acts.appendChild(dis);div.appendChild(acts);
@@ -533,9 +575,13 @@ function renderGroups(){
   empty.classList.add('hidden');
   groups.forEach((g,i)=>{
     const names=(g.memberNames||g.members||[]).join(', ');
-    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
+    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'mm';
     div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">👥 '+g.name+'</span><small style="opacity:.5;font-size:11px;">'+names+'</small></span>'
-      +'<div class="item-actions"><button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button><button class="action-btn remove" onclick="window._dlG('+i+')">Remove</button></div>';
+      +'<div class="item-actions">'
+      +'<button class="action-btn rename" onclick="window._inviteToGroup('+i+')" title="Invite a friend">Invite</button>'
+      +'<button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button>'
+      +'<button class="action-btn remove" onclick="window._leaveGroup('+i+')">Leave</button>'
+      +'</div>';
     list.appendChild(div);
   });
 }
@@ -565,7 +611,61 @@ async function createGroup(){
   }
   showToast('Group created — invites sent!');}
 window._rnG=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
-window._dlG=i=>{if(!confirm('Delete "'+groups[i].name+'"?'))return;groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();};
+
+// Leave group — removes from local list, notifies all members
+window._leaveGroup=async function(i){
+  const g=groups[i];
+  if(!confirm('Leave "'+g.name+'"? All members will be notified.'))return;
+  // Notify every other member
+  const otherMembers=(g.members||[]).filter(uid=>uid!==currentUser.uid);
+  for(const uid of otherMembers){
+    try{
+      await addDoc(collection(db,'notifications'),{
+        toUid:uid,fromUid:currentUser.uid,fromName:myName,
+        type:'group_left',groupName:g.name,groupId:g.groupId||g.name,
+        sentAt:serverTimestamp(),dismissed:false
+      });
+    }catch(e){console.warn('Leave notify failed:',e);}
+  }
+  // Remove locally
+  groups.splice(i,1);
+  saveGroups();renderGroups();renderSpeedSend();
+  if(selectedTarget&&selectedTarget.uid==='grp_'+g.name){selectedTarget=null;renderChat();}
+  showToast('You left "'+g.name+'"');
+};
+
+// Invite a friend to an existing group
+window._inviteToGroup=function(i){
+  const g=groups[i];
+  // Show a modal-style dropdown of friends not already in the group
+  const eligible=friends.filter(f=>!f.pending&&!(g.members||[]).includes(f.uid));
+  if(!eligible.length){showToast('No friends to invite — they may already be in this group');return;}
+  // Build a simple select prompt
+  const names=eligible.map((f,idx)=>(idx+1)+'. '+(f.nickname||f.name)).join('
+');
+  const choice=prompt('Invite to "'+g.name+'":
+
+'+names+'
+
+Enter number:');
+  if(!choice)return;
+  const idx=parseInt(choice)-1;
+  if(isNaN(idx)||idx<0||idx>=eligible.length){showToast('Invalid selection');return;}
+  const friend=eligible[idx];
+  window._sendGroupInvite(g,friend);
+};
+
+window._sendGroupInvite=async function(g,friend){
+  try{
+    await addDoc(collection(db,'notifications'),{
+      toUid:friend.uid,fromUid:currentUser.uid,fromName:myName,
+      type:'group_invite',groupName:g.name,groupId:g.groupId||g.name,
+      members:g.members||[],memberNames:g.memberNames||[],
+      sentAt:serverTimestamp(),read:false,dismissed:false
+    });
+    showToast('📨 Invite sent to '+(friend.nickname||friend.name));
+  }catch(e){showToast('Failed to send invite: '+e.message);}
+};
 function showPage(id,btn){
   document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -589,7 +689,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
 try{recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:async()=>{const raw=document.getElementById('phoneInput').value.trim();const errEl=document.getElementById('authError1');const btn=document.getElementById('sendCodeBtn');if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}const phone=normalizePhone(raw);if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short.';return;}btn.disabled=true;btn.textContent='Sending...';try{confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);document.getElementById('otpDesc').textContent='Code sent to '+phone;document.getElementById('authStep1').classList.remove('active');document.getElementById('authStep2').classList.add('active');setTimeout(()=>document.getElementById('otp0').focus(),200);}catch(e){console.error(e);errEl.textContent=e.message||'Failed to send. Check your number.';try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;}finally{btn.disabled=false;btn.textContent='Send Code';}},'expired-callback':()=>{showToast('Check expired - please try again');recaptchaVerifier=null;}});await recaptchaVerifier.render();}catch(e){console.warn('reCAPTCHA:',e);}
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;
 </script>
 </body>
 </html>
