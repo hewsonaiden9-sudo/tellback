@@ -281,7 +281,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
   <div class="card">
     <div class="card-title">Your Friends</div>
     <div id="friendsList"></div>
-    <div class="empty hidden" id="friendsEmpty"><div class="emoji">&#128100;</div>No friends yet</div>
+    <div class="empty hidden" id="friendsEmpty"><div class="emoji">👤</div>No friends yet — add someone below!</div>
   </div>
   <button class="app-button" onclick="showAddFriendModal()">Add Friend by Phone</button>
 </div>
@@ -289,7 +289,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
   <div class="card">
     <div class="card-title">Groups</div>
     <div id="groupsList"></div>
-    <div class="empty hidden" id="groupsEmpty"><div class="emoji">&#128101;</div>No groups yet</div>
+    <div class="empty hidden" id="groupsEmpty"><div class="emoji">👥</div>No groups yet — create one or check Alerts for invites!</div>
   </div>
   <button class="app-button" onclick="toggleCreateGroup()">Create Group</button>
   <div class="card hidden" id="createGroupPanel" style="margin-top:10px;">
@@ -321,18 +321,22 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
     <div class="setting-row"><div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div><label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
     <div class="setting-row"><div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div><label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
   </div>
-  <!-- NOTIFICATIONS PANEL -->
-  <div class="card">
-    <div class="card-title">Notifications <span class="card-title-right" id="notifBadge" style="display:none;background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:10px;"></span></div>
-    <div id="notifList"><div class="empty" style="padding:16px 0;"><div class="emoji">🔔</div>No notifications</div></div>
-  </div>
   <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.5px;">TELLBACK v2.0 - FIREBASE</div>
 </div>
+
+<!-- NOTIFICATIONS PAGE -->
+<div class="container subpage" id="notifPage">
+  <div class="card">
+    <div class="card-title">Notifications <span class="card-title-right" id="notifBadge" style="display:none;background:#ef4444;color:white;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;"></span></div>
+    <div id="notifList"><div class="empty" style="padding:20px 0;"><div class="emoji">🔔</div>No notifications yet</div></div>
+  </div>
+</div>
 <div class="bottom-nav">
-  <div class="nav-btn active" onclick="showPage('homePage',this)"><div class="nav-icon">&#127968;</div><div class="nav-label">Home</div></div>
-  <div class="nav-btn" onclick="showPage('friendsPage',this)"><div class="nav-icon">&#128100;</div><div class="nav-label">Friends</div></div>
-  <div class="nav-btn" onclick="showPage('groupsPage',this)"><div class="nav-icon">&#128101;</div><div class="nav-label">Groups</div></div>
-  <div class="nav-btn" onclick="showPage('settingsPage',this)"><div class="nav-icon">&#9881;&#65039;</div><div class="nav-label">Settings</div></div>
+  <div class="nav-btn active" onclick="showPage('homePage',this)"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+  <div class="nav-btn" onclick="showPage('friendsPage',this)"><div class="nav-icon">👤</div><div class="nav-label">Friends</div></div>
+  <div class="nav-btn" onclick="showPage('groupsPage',this)"><div class="nav-icon">👥</div><div class="nav-label">Groups</div></div>
+  <div class="nav-btn" onclick="showPage('settingsPage',this)"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+  <div class="nav-btn" id="notifNavBtn" onclick="showPage('notifPage',this)"><div class="nav-icon" style="position:relative;display:inline-block;">🔔<span id="notifNavDot" style="display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:1.5px solid var(--card);"></span></div><div class="nav-label">Alerts</div></div>
 </div>
 </div>
 <div class="modal-overlay" id="addFriendModal">
@@ -355,7 +359,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
-const firebaseConfig={apiKey:"AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",authDomain:"tellback-68a28.firebaseapp.com",projectId:"tellback-68a28",storageBucket:"tellback-68a28.firebasestorage.app",messagingSenderId:"847309476601",appId:"1:847309476801:web:e2ce35491762b7012b4828"};
+const firebaseConfig={apiKey:"AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",authDomain:"tellback-68a28.firebaseapp.com",projectId:"tellback-68a28",storageBucket:"tellback-68a28.firebasestorage.app",messagingSenderId:"847309476601",appId:"1:847309476601:web:e2ce35491762b7012b4828"};
 const fbApp=initializeApp(firebaseConfig);
 const auth=getAuth(fbApp);const db=getFirestore(fbApp);const messaging=getMessaging(fbApp);
 const VAPID_KEY='BJcJqLGGDoK9_9JMPKptqqb8iflEVZVt4WL-rllHwWmA7WX0j8nW52KnHSdacOnrFq5H5Cqv0l9KtbxE2LH71ng';
@@ -422,11 +426,17 @@ function listenForNotifications(){
 function renderNotifPanel(notifs){
   const list=document.getElementById('notifList');
   const badge=document.getElementById('notifBadge');
+  const navDot=document.getElementById('notifNavDot');
   if(!list)return;
-  // Only show non-voice, non-dismissed notifs in panel
   const panel=notifs.filter(n=>n.type==='group_invite'||n.type==='group_joined');
-  if(!panel.length){list.innerHTML='<div class="empty" style="padding:16px 0;"><div class="emoji">🔔</div>No notifications</div>';badge.style.display='none';return;}
-  badge.style.display='inline';badge.textContent=panel.length;
+  if(!panel.length){
+    list.innerHTML='<div class="empty" style="padding:20px 0;"><div class="emoji">🔔</div>No notifications yet</div>';
+    if(badge)badge.style.display='none';
+    if(navDot)navDot.style.display='none';
+    return;
+  }
+  if(badge){badge.style.display='inline';badge.textContent=panel.length;}
+  if(navDot)navDot.style.display='block';
   list.innerHTML='';
   panel.forEach(n=>{
     const div=document.createElement('div');
@@ -470,12 +480,18 @@ async function removeFriend(uid){if(!confirm('Remove this friend?'))return;await
 function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span>'+name+(f.pending?' (pending)':'')+' <small style="opacity:.4;font-size:11px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
 window._rmFriend=removeFriend;
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
-function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];const av=f.isGroup?'GRP':getInitials(name);chip.innerHTML='<div class="chip-avatar">'+av+(!f.isGroup?'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span>':'')+'</div><div class="chip-name">'+name+'</div>';chip.onclick=()=>{selectedTarget=f;renderSpeedSend();updateSelectedLabel();if(f.isGroup)subscribeToGroupMessages(f.uid,f.members);else subscribeToMessages(f.uid);renderChat();};box.appendChild(chip);});}
+function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];const av=f.isGroup?'GRP':getInitials(name);chip.innerHTML='<div class="chip-avatar">'+av+(!f.isGroup?'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span>':'')+'</div><div class="chip-name">'+name+'</div>';chip.onclick=()=>{
+  selectedTarget={...f};
+  renderSpeedSend();updateSelectedLabel();
+  if(f.isGroup)subscribeToGroupMessages(f.uid,f.members||[]);
+  else subscribeToMessages(f.uid);
+  renderChat();
+};box.appendChild(chip);});}
 function updateSelectedLabel(){document.getElementById('selectedLabel').textContent=selectedTarget?(selectedTarget.nickname||selectedTarget.name):'None selected';}
 function convId(a,b){return[a,b].sort().join('_');}
 function groupConvId(g){return'group_'+g.replace('grp_','').replace(/[^a-zA-Z0-9]/g,'_');}
 function subscribeToMessages(fuid){if(msgListeners[fuid])return;const cid=convId(currentUser.uid,fuid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[fuid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[fuid]=msgs;if(selectedTarget&&selectedTarget.uid===fuid)renderChat();const hasNew=msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));const dot=document.getElementById('dot-'+fuid);if(dot)dot.classList.toggle('show',hasNew&&!(selectedTarget&&selectedTarget.uid===fuid));});}
-function subscribeToGroupMessages(gUid){if(msgListeners[gUid])return;const cid=groupConvId(gUid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[gUid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[gUid]=msgs;if(selectedTarget&&selectedTarget.uid===gUid)renderChat();});}
+function subscribeToGroupMessages(gUid,members){if(msgListeners[gUid])return;const cid=groupConvId(gUid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[gUid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[gUid]=msgs;if(selectedTarget&&selectedTarget.uid===gUid)renderChat();});}
 async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=msgCache[fuid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 async function markGroupRead(gUid){const cid=groupConvId(gUid);const msgs=msgCache[gUid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 function renderChat(){const history=document.getElementById('chatHistory');const title=document.getElementById('voiceChatTitle');history.innerHTML='';if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';return;}title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);const msgs=msgCache[selectedTarget.uid]||[];if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);else markRead(selectedTarget.uid);setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);}
@@ -484,7 +500,19 @@ async function togglePin(msg){if(!selectedTarget||!msg.firestoreId)return;const 
 async function deleteMessage(msg){if(!selectedTarget||!msg.firestoreId)return;const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);await deleteDoc(doc(db,'conversations',cid,'messages',msg.firestoreId));}
 async function runAutoDelete(){if(!aT().checked||!currentUser)return;const cutoff=Date.now()-24*60*60*1000;for(const f of friends){const cid=convId(currentUser.uid,f.uid);try{const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));for(const d of snap.docs){const m=d.data();if(m.pinned)continue;const ms=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;if(ms>0&&ms<cutoff)await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});}}catch(e){}}for(const g of groups){const gUid='grp_'+g.name,cid=groupConvId(gUid);try{const snap=await getDocs(query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc')));for(const d of snap.docs){const m=d.data();if(m.pinned||m.senderUid!==currentUser.uid)continue;const ms=m.sentAt?.toDate?m.sentAt.toDate().getTime():0;if(ms>0&&ms<cutoff)await deleteDoc(doc(db,'conversations',cid,'messages',d.id)).catch(()=>{});}}catch(e){}}}
 function saveGroups(){localStorage.setItem('tb_groups',JSON.stringify(groups));}
-function renderGroups(){const list=document.getElementById('groupsList'),empty=document.getElementById('groupsEmpty');if(!list)return;list.innerHTML='';if(!groups.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');groups.forEach((g,i)=>{const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span>Group: '+g.name+' <small style="opacity:.4;font-size:11px;">('+((g.memberNames||g.members).join(', '))+')</small></span><div class="item-actions"><button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button><button class="action-btn remove" onclick="window._dlG('+i+')">Remove</button></div>';list.appendChild(div);});}
+function renderGroups(){
+  const list=document.getElementById('groupsList'),empty=document.getElementById('groupsEmpty');
+  if(!list)return;list.innerHTML='';
+  if(!groups.length){empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  groups.forEach((g,i)=>{
+    const names=(g.memberNames||g.members||[]).join(', ');
+    const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';
+    div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">👥 '+g.name+'</span><small style="opacity:.5;font-size:11px;">'+names+'</small></span>'
+      +'<div class="item-actions"><button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button><button class="action-btn remove" onclick="window._dlG('+i+')">Remove</button></div>';
+    list.appendChild(div);
+  });
+}
 function toggleCreateGroup(){document.getElementById('createGroupPanel').classList.toggle('hidden');renderGroupCheckboxes();}
 function renderGroupCheckboxes(){const c=document.getElementById('groupFriendCheckboxes');if(!c)return;c.innerHTML='';friends.forEach(f=>{const l=document.createElement('label');l.className='grp-check-item';l.innerHTML='<input type="checkbox" value="'+f.uid+'"> '+(f.nickname||f.name);c.appendChild(l);});}
 async function createGroup(){
@@ -512,7 +540,16 @@ async function createGroup(){
   showToast('Group created — invites sent!');}
 window._rnG=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
 window._dlG=i=>{if(!confirm('Delete "'+groups[i].name+'"?'))return;groups.splice(i,1);saveGroups();renderGroups();renderSpeedSend();};
-function showPage(id,btn){document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function showPage(id,btn){
+  document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Clear nav dot when opening notifications
+  if(id==='notifPage'){
+    const nd=document.getElementById('notifNavDot');if(nd)nd.style.display='none';
+  }
+}
 const NUM_BARS=12;
 function startWaveform(stream){const ctx=new(window.AudioContext||window.webkitAudioContext)();const src=ctx.createMediaStreamSource(stream);analyserNode=ctx.createAnalyser();analyserNode.fftSize=256;src.connect(analyserNode);const data=new Uint8Array(analyserNode.frequencyBinCount);const bars=Array.from({length:NUM_BARS},(_,i)=>document.getElementById('wvb'+i));document.getElementById('waveformWrap').classList.add('active');function draw(){waveAnimId=requestAnimationFrame(draw);analyserNode.getByteFrequencyData(data);bars.forEach((bar,i)=>{if(!bar)return;const v=data[Math.floor(i*(data.length/NUM_BARS/2))];const h=Math.max(4,Math.min(44,(v/255)*44));bar.style.height=h+'px';bar.style.opacity=0.5+(v/255)*0.5;});}draw();}
 function stopWaveform(){if(waveAnimId){cancelAnimationFrame(waveAnimId);waveAnimId=null;}analyserNode=null;document.getElementById('waveformWrap').classList.remove('active');for(let i=0;i<NUM_BARS;i++){const b=document.getElementById('wvb'+i);if(b){b.style.height='8px';b.style.opacity='1';}}}
