@@ -181,6 +181,20 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
 /* read receipts */
 .read-receipt{font-size:10px;color:var(--sub);margin-top:3px;font-family:'Syne',sans-serif;letter-spacing:.2px;}
 .read-receipt.seen{color:var(--primary);}
+/* playback speed */
+.speed-btns{display:flex;gap:4px;margin-top:5px;}
+.speed-btn{border:1.5px solid var(--border);background:var(--bg);color:var(--sub);cursor:pointer;padding:3px 9px;border-radius:8px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;transition:all .15s;}
+.speed-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+/* audio waveform visualizer canvas */
+.waveform-canvas{width:100%;height:36px;border-radius:8px;margin-top:4px;cursor:pointer;display:block;}
+/* tag badge */
+.tag-badge{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:.5px;cursor:pointer;transition:background .15s;}
+.tag-badge:hover{background:var(--primary);color:white;}
+.tag-copy-hint{font-size:10px;color:var(--sub);margin-top:4px;font-family:'Syne',sans-serif;}
+/* tag add friend input */
+.tag-input-wrap{display:flex;gap:8px;margin-top:8px;}
+.tag-input-wrap input{flex:1;margin-top:0;}
+.tag-input-wrap button{padding:0 16px;border:none;border-radius:12px;background:var(--primary);color:white;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
 /* custom status text */
 .status-text-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-top:8px;transition:border-color .15s;}
 .status-text-input:focus{border-color:var(--primary);}
@@ -307,6 +321,7 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
     <div class="empty hidden" id="friendsEmpty"><div class="emoji">👤</div>No friends yet — add someone below!</div>
   </div>
   <button class="app-button" onclick="showAddFriendModal()">Add Friend by Phone</button>
+  <button class="app-button secondary" onclick="showPage('settingsPage', document.querySelector('.nav-btn:nth-child(4)'));setTimeout(()=>document.getElementById('tagSearchInput').focus(),300);" style="margin-top:8px;">Add Friend by Tag</button>
 </div>
 <div class="container subpage" id="groupsPage">
   <div class="card">
@@ -357,6 +372,31 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
     <div class="setting-row"><div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div><label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
     <div class="setting-row"><div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div><label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
   </div>
+  <!-- TAG -->
+  <div class="card">
+    <div class="card-title">Your TellBack Tag</div>
+    <div class="setting-desc" style="margin-bottom:8px;">Friends can add you with this tag — no phone number needed.</div>
+    <div class="tag-badge" id="myTagBadge" onclick="copyTag()">
+      <span>🏷</span><span id="myTagText">generating…</span>
+    </div>
+    <div class="tag-copy-hint" id="tagCopyHint">Tap to copy</div>
+    <div style="margin-top:14px;">
+      <div class="setting-label" style="font-size:13px;">Add friend by tag</div>
+      <div class="tag-input-wrap">
+        <input type="text" id="tagSearchInput" placeholder="Enter tag e.g. TB-X4K9M2" style="text-transform:uppercase;">
+        <button onclick="addFriendByTag()">Add</button>
+      </div>
+      <div class="auth-error" id="tagSearchError" style="margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- INVITE -->
+  <div class="card">
+    <div class="card-title">Invite Friends</div>
+    <div class="setting-desc" style="margin-bottom:10px;">Share TellBack with your contacts.</div>
+    <button class="app-button secondary" onclick="shareInviteLink()" style="margin-top:0;">📲 Send Invite via SMS</button>
+  </div>
+
   <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.5px;">TELLBACK v2.0 - FIREBASE</div>
 </div>
 
@@ -498,6 +538,94 @@ function renderSettingsAvatar(){
   }
 }
 
+/* ══════════════════════════════
+   TAG SYSTEM
+══════════════════════════════ */
+let myTag = '';
+
+function generateTag(){
+  // Format: TB-XXXXXX (6 alphanumeric chars)
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let tag='TB-';
+  for(let i=0;i<6;i++) tag+=chars[Math.floor(Math.random()*chars.length)];
+  return tag;
+}
+
+async function initTag(){
+  // Load existing tag or generate new one
+  try{
+    const snap=await getDoc(doc(db,'users',currentUser.uid));
+    if(snap.exists()&&snap.data().tag){
+      myTag=snap.data().tag;
+    }else{
+      // Generate a unique tag
+      let attempts=0;
+      while(attempts<10){
+        const candidate=generateTag();
+        // Check uniqueness
+        const q=query(collection(db,'users'),where('tag','==',candidate));
+        const existing=await getDocs(q);
+        if(existing.empty){
+          myTag=candidate;
+          await setDoc(doc(db,'users',currentUser.uid),{tag:myTag},{merge:true});
+          break;
+        }
+        attempts++;
+      }
+    }
+    const el=document.getElementById('myTagText');
+    if(el) el.textContent=myTag;
+  }catch(e){console.warn('Tag init failed:',e);}
+}
+
+function copyTag(){
+  if(!myTag) return;
+  navigator.clipboard.writeText(myTag).then(()=>{
+    const hint=document.getElementById('tagCopyHint');
+    if(hint){hint.textContent='✅ Copied!';setTimeout(()=>{hint.textContent='Tap to copy';},2000);}
+    showToast('Tag copied: '+myTag);
+  }).catch(()=>showToast('Tag: '+myTag));
+}
+
+async function addFriendByTag(){
+  const raw=document.getElementById('tagSearchInput').value.trim().toUpperCase();
+  const errEl=document.getElementById('tagSearchError');
+  errEl.textContent='';
+  if(!raw||raw.length<5){errEl.textContent='Enter a valid tag e.g. TB-X4K9M2';return;}
+  const tag=raw.startsWith('TB-')?raw:'TB-'+raw;
+  if(tag===myTag){errEl.textContent="That's your own tag!";return;}
+  errEl.textContent='Searching…';
+  try{
+    const q=query(collection(db,'users'),where('tag','==',tag));
+    const snap=await getDocs(q);
+    if(snap.empty){errEl.textContent='No user found with that tag.';return;}
+    const fd=snap.docs[0].data();
+    const fuid=snap.docs[0].id;
+    if(friends.find(f=>f.uid===fuid)){errEl.textContent='Already friends!';return;}
+    await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone||'',name:fd.name,nickname:'',addedAt:serverTimestamp()});
+    await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});
+    friends.push({uid:fuid,phone:fd.phone||'',name:fd.name,nickname:''});
+    subscribeToFriendStatus(fuid);
+    renderFriends();renderSpeedSend();
+    document.getElementById('tagSearchInput').value='';
+    errEl.textContent='';
+    showToast('✅ '+fd.name+' added!');
+  }catch(e){errEl.textContent='Error: '+e.message;}
+}
+
+/* ── INVITE LINK ── */
+function shareInviteLink(){
+  const link='https://hewsonaiden9-sudo.github.io/tellback';
+  const msg=myName+' is using TellBack for voice messages! Join here: '+link+(myTag?' — Add me with tag: '+myTag:'');
+  // Try Web Share API first
+  if(navigator.share){
+    navigator.share({title:'TellBack',text:msg,url:link}).catch(()=>{});
+  }else{
+    // Fall back to SMS
+    window.open('sms:?body='+encodeURIComponent(msg),'_blank');
+  }
+}
+
 /* ── CUSTOM STATUS ── */
 let statusSaveTimer=null;
 function saveCustomStatus(){
@@ -552,6 +680,7 @@ async function launchApp(){
     }
   }catch(e){}
   renderSettingsAvatar();
+  await initTag();
   await setDoc(doc(db,'users',currentUser.uid),{status:'online'},{merge:true}).catch(()=>{});
   await loadFriends();
   renderGroups();renderSpeedSend();renderChat();
@@ -727,18 +856,59 @@ async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=
 async function markGroupRead(gUid){const cid=groupConvId(gUid);const msgs=msgCache[gUid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 function renderChat(){const history=document.getElementById('chatHistory');const title=document.getElementById('voiceChatTitle');history.innerHTML='';if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';return;}title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);const msgs=msgCache[selectedTarget.uid]||[];if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);else markRead(selectedTarget.uid);setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);}
 function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){
-    const a=document.createElement('audio');a.controls=true;a.preload='auto';a.src=msg.audioBase64;
-    // Mark as listened when played
-    if(!isOut){
-      a.onplay=async()=>{
+    const wrapper=document.createElement('div');
+    // Hidden audio element
+    const a=document.createElement('audio');a.preload='auto';a.src=msg.audioBase64;
+    wrapper.appendChild(a);
+    // Waveform canvas
+    const canvas=document.createElement('canvas');
+    canvas.className='waveform-canvas';canvas.height=36;
+    wrapper.appendChild(canvas);
+    // Speed controls
+    const speeds=document.createElement('div');speeds.className='speed-btns';
+    [1,1.5,2].forEach(spd=>{
+      const btn=document.createElement('button');btn.className='speed-btn'+(spd===1?' active':'');
+      btn.textContent=spd+'x';
+      btn.onclick=(e)=>{
+        e.stopPropagation();a.playbackRate=spd;
+        speeds.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+      };
+      speeds.appendChild(btn);
+    });
+    wrapper.appendChild(speeds);
+    // Draw waveform after audio loads
+    a.addEventListener('loadedmetadata',()=>drawWaveform(a,canvas));
+    canvas.addEventListener('click',(e)=>{
+      const rect=canvas.getBoundingClientRect();
+      const pct=(e.clientX-rect.left)/rect.width;
+      a.currentTime=a.duration*pct;
+      if(a.paused)a.play();
+    });
+    // Animate playhead
+    a.addEventListener('timeupdate',()=>drawWaveform(a,canvas));
+    a.addEventListener('play',()=>{
+      if(!isOut){
         if(!msg.listenedBy?.includes(currentUser.uid)&&msg.firestoreId&&selectedTarget){
           const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);
-          await updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),
+          updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),
             {listenedBy:[...(msg.listenedBy||[]),currentUser.uid]}).catch(()=>{});
         }
-      };
-    }
-    slot.replaceWith(a);
+      }
+    });
+    // Play/pause on canvas click is handled above; also add play button overlay via CSS
+    // Add a simple play/pause button
+    const playBtn=document.createElement('button');
+    playBtn.style.cssText='position:absolute;top:50%;transform:translateY(-50%);left:6px;background:var(--primary);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;z-index:2;';
+    playBtn.textContent='▶';
+    a.onplay=()=>{playBtn.textContent='⏸';};
+    a.onpause=()=>{playBtn.textContent='▶';};
+    playBtn.onclick=(e)=>{e.stopPropagation();a.paused?a.play():a.pause();};
+    wrapper.style.position='relative';
+    wrapper.appendChild(playBtn);
+    // Indent canvas to make room for play button
+    canvas.style.paddingLeft='36px';
+    slot.replaceWith(wrapper);
   }else slot.textContent='No audio data';if(msg.transcript){const t=document.createElement('div');t.className='bubble-transcript';t.textContent='"'+msg.transcript+'"';div.appendChild(t);}
   // Read receipt — show on outgoing messages
   if(isOut&&!selectedTarget?.isGroup){
@@ -865,6 +1035,39 @@ function showPage(id,btn){
 const NUM_BARS=12;
 function startWaveform(stream){const ctx=new(window.AudioContext||window.webkitAudioContext)();const src=ctx.createMediaStreamSource(stream);analyserNode=ctx.createAnalyser();analyserNode.fftSize=256;src.connect(analyserNode);const data=new Uint8Array(analyserNode.frequencyBinCount);const bars=Array.from({length:NUM_BARS},(_,i)=>document.getElementById('wvb'+i));document.getElementById('waveformWrap').classList.add('active');function draw(){waveAnimId=requestAnimationFrame(draw);analyserNode.getByteFrequencyData(data);bars.forEach((bar,i)=>{if(!bar)return;const v=data[Math.floor(i*(data.length/NUM_BARS/2))];const h=Math.max(4,Math.min(44,(v/255)*44));bar.style.height=h+'px';bar.style.opacity=0.5+(v/255)*0.5;});}draw();}
 function stopWaveform(){if(waveAnimId){cancelAnimationFrame(waveAnimId);waveAnimId=null;}analyserNode=null;document.getElementById('waveformWrap').classList.remove('active');for(let i=0;i<NUM_BARS;i++){const b=document.getElementById('wvb'+i);if(b){b.style.height='8px';b.style.opacity='1';}}}
+/* ── MESSAGE WAVEFORM VISUALIZER ── */
+function drawWaveform(audioEl, canvas){
+  const ctx=canvas.getContext('2d');
+  const w=canvas.offsetWidth||canvas.clientWidth||280;
+  const h=canvas.height||36;
+  canvas.width=w;
+  const isDark=document.body.classList.contains('dark');
+  const primaryColor=isDark?'#4f8ef7':'#2563eb';
+  const playedColor=isDark?'#7ab0ff':'#1d4ed8';
+  const bgColor=isDark?'rgba(30,29,48,0)':'rgba(244,245,250,0)';
+  ctx.clearRect(0,0,w,h);
+  // Draw fake-but-consistent waveform bars seeded by message ID
+  const bars=Math.floor(w/5);
+  const seed=audioEl.src.length;
+  const pct=audioEl.duration>0?(audioEl.currentTime/audioEl.duration):0;
+  const playedBars=Math.floor(pct*bars);
+  for(let i=0;i<bars;i++){
+    // Deterministic height based on position + seed
+    const h2=Math.max(4,Math.min(h-4,
+      ((Math.sin(i*0.4+seed%10)*0.4+Math.sin(i*1.1+seed%7)*0.3+Math.sin(i*2.3)*0.3)+1)*((h-8)/2)+4
+    ));
+    const x=i*5+1;
+    const barH=h2;
+    const y=(h-barH)/2;
+    ctx.fillStyle=i<=playedBars?playedColor:primaryColor;
+    ctx.globalAlpha=i<=playedBars?1:0.35;
+    ctx.beginPath();
+    ctx.roundRect(x,y,3,barH,1.5);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
 let recognition=null,liveTranscript='';
 function setupRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}liveTranscript=(liveTranscript+f).trim();};rec.onerror=()=>{};return rec;}
 let mediaRecorder=null,chunks=[],recStream=null;
@@ -875,7 +1078,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
 try{recaptchaVerifier=new RecaptchaVerifier(auth,'recaptcha-container',{size:'normal',callback:async()=>{const raw=document.getElementById('phoneInput').value.trim();const errEl=document.getElementById('authError1');const btn=document.getElementById('sendCodeBtn');if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}const phone=normalizePhone(raw);if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short.';return;}btn.disabled=true;btn.textContent='Sending...';try{confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);document.getElementById('otpDesc').textContent='Code sent to '+phone;document.getElementById('authStep1').classList.remove('active');document.getElementById('authStep2').classList.add('active');setTimeout(()=>document.getElementById('otp0').focus(),200);}catch(e){console.error(e);errEl.textContent=e.message||'Failed to send. Check your number.';try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;}finally{btn.disabled=false;btn.textContent='Send Code';}},'expired-callback':()=>{showToast('Check expired - please try again');recaptchaVerifier=null;}});await recaptchaVerifier.render();}catch(e){console.warn('reCAPTCHA:',e);}
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window._sendGroupInvite=window._sendGroupInvite;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
 </script>
 </body>
 </html>
