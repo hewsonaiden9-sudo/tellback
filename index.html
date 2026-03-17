@@ -979,8 +979,23 @@ async function removeFriend(uid){
   renderFriends();renderSpeedSend();
   showToast(fname+' removed');
 }
-function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span>'+name+(f.pending?' (pending)':'')+' <small style="opacity:.4;font-size:11px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
+function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span><span style="font-weight:600;">'+name+'</span>'+(f.pending?' <small style="color:var(--sub);font-size:11px;">(pending)</small>':'')+'</span>'+(f.nickname?'<small style="opacity:.45;font-size:11px;padding-left:17px;">Real name: '+f.name+'</small>':'')+'<small style="opacity:.35;font-size:10px;padding-left:17px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn rename" onclick="window._nickFriend(\''+f.uid+'\')">Nickname</button><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
 window._rmFriend=removeFriend;
+window._nickFriend=async function(uid){
+  const f=friends.find(x=>x.uid===uid);if(!f)return;
+  const current=f.nickname||'';
+  const n=prompt('Set nickname for '+f.name+':
+(leave blank to use their real name)',current);
+  if(n===null)return; // cancelled
+  const nick=n.trim();
+  f.nickname=nick;
+  // Save to Firestore
+  try{
+    await updateDoc(doc(db,'users',currentUser.uid,'friends',uid),{nickname:nick});
+    renderFriends();renderSpeedSend();
+    showToast(nick?'Nickname set to "'+nick+'"':'Nickname cleared');
+  }catch(e){showToast('Could not save: '+e.message);}
+};
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
 function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];let avHtml;
     if(f.isGroup){
