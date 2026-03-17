@@ -1086,38 +1086,49 @@ function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 function addRipple(btn,e){const r=document.createElement('span');r.className='ripple';const rect=btn.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.cssText='width:'+sz+'px;height:'+sz+'px;left:'+((e.clientX||rect.left+rect.width/2)-rect.left-sz/2)+'px;top:'+((e.clientY||rect.top+rect.height/2)-rect.top-sz/2)+'px;';btn.appendChild(r);r.addEventListener('animationend',()=>r.remove());}
-// reCAPTCHA — render on module load (module scripts run after DOM is ready)
-try{
-  recaptchaVerifier = new RecaptchaVerifier(auth,'recaptcha-container',{
-    size:'normal',
-    callback: async()=>{
-      const raw=document.getElementById('phoneInput').value.trim();
-      const errEl=document.getElementById('authError1');
-      const btn=document.getElementById('sendCodeBtn');
-      if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}
-      const phone=normalizePhone(raw);
-      if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
-      btn.disabled=true;btn.textContent='Sending...';
-      try{
-        confirmResult=await signInWithPhoneNumber(auth,phone,recaptchaVerifier);
-        document.getElementById('otpDesc').textContent='Code sent to '+phone;
-        document.getElementById('authStep1').classList.remove('active');
-        document.getElementById('authStep2').classList.add('active');
-        setTimeout(()=>document.getElementById('otp0').focus(),200);
-      }catch(e){
-        console.error(e);
-        errEl.textContent=e.message||'Failed to send. Check your number.';
-        try{recaptchaVerifier.clear();}catch(_){}recaptchaVerifier=null;
-      }finally{btn.disabled=false;btn.textContent='Send Code';}
-    },
-    'expired-callback':()=>{
-      showToast('Check expired — please try again');
-      recaptchaVerifier=null;
-    }
-  });
-  await recaptchaVerifier.render();
-}catch(e){console.warn('reCAPTCHA:',e);}
+// reCAPTCHA setup — called from non-module script below
+window._setupRecaptcha = function(authInstance, signInFn){
+  if(window._recaptchaVerifier) return;
+  try{
+    window._recaptchaVerifier = new RecaptchaVerifier(authInstance,'recaptcha-container',{
+      size:'normal',
+      callback: async()=>{
+        const raw=document.getElementById('phoneInput').value.trim();
+        const errEl=document.getElementById('authError1');
+        const btn=document.getElementById('sendCodeBtn');
+        if(!raw){errEl.textContent='Enter your number first, then complete the check.';return;}
+        const digits=raw.replace(/[^\d+]/g,'');
+        const phone=digits.startsWith('+')?digits:'+1'+digits;
+        if(phone.replace(/\D/g,'').length<8){errEl.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
+        btn.disabled=true;btn.textContent='Sending...';
+        try{
+          confirmResult=await signInFn(authInstance,phone,window._recaptchaVerifier);
+          recaptchaVerifier=window._recaptchaVerifier;
+          document.getElementById('otpDesc').textContent='Code sent to '+phone;
+          document.getElementById('authStep1').classList.remove('active');
+          document.getElementById('authStep2').classList.add('active');
+          setTimeout(()=>document.getElementById('otp0').focus(),200);
+        }catch(e){
+          console.error(e);
+          errEl.textContent=e.message||'Failed to send. Check your number.';
+          try{window._recaptchaVerifier.clear();}catch(_){}
+          window._recaptchaVerifier=null;recaptchaVerifier=null;
+        }finally{btn.disabled=false;btn.textContent='Send Code';}
+      },
+      'expired-callback':()=>{
+        if(window.showToast)showToast('Check expired — please try again');
+        window._recaptchaVerifier=null;recaptchaVerifier=null;
+      }
+    });
+    window._recaptchaVerifier.render().then(()=>{
+      recaptchaVerifier=window._recaptchaVerifier;
+      console.log('reCAPTCHA ready');
+    }).catch(e=>console.warn('reCAPTCHA render:',e));
+  }catch(e){console.warn('reCAPTCHA init:',e);}
+};
+// Call it now — auth and signInWithPhoneNumber are in scope here
+window._setupRecaptcha(auth, signInWithPhoneNumber);
 window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
 </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </html>
+</html>
