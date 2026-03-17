@@ -157,6 +157,14 @@ input:checked+.slider:before{transform:translateX(20px);}
 .nav-btn.active .nav-icon svg{filter:drop-shadow(0 0 6px rgba(60,130,255,.8));transform:scale(1.1) translateY(-1px);}
 .nav-btn:active .nav-icon svg{transform:scale(0.92) translateY(1px);filter:brightness(1.1);}
 .nav-label{font-size:10px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.3px;color:#8899cc;}
+.nav-badge{position:absolute;top:2px;right:6px;min-width:16px;height:16px;background:#ef4444;border-radius:8px;border:2px solid #141830;font-size:9px;font-weight:700;color:white;font-family:'Syne',sans-serif;display:none;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 6px rgba(239,68,68,.6);}
+.nav-badge.show{display:flex;}
+/* recording indicator */
+.recording-indicator{display:none;align-items:center;gap:6px;padding:8px 12px;background:var(--primary-soft);border-radius:10px;margin-bottom:6px;border:1px solid var(--primary);animation:fadeIn .3s ease;}
+.recording-indicator.show{display:flex;}
+.recording-indicator-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulseRed 1s infinite;flex-shrink:0;}
+.recording-indicator-text{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--primary);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
 .nav-btn.active{opacity:1;background:rgba(80,140,255,.12);border-radius:10px;}
 .nav-btn.active .nav-label{color:#60a0ff;}
 .nav-btn.active svg{filter:drop-shadow(0 0 4px rgba(96,160,255,.7));}
@@ -300,6 +308,10 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
   </div>
   <div class="card">
     <div class="card-title" id="voiceChatTitle">Voice Messages</div>
+    <div class="recording-indicator" id="recordingIndicator">
+      <div class="recording-indicator-dot"></div>
+      <div class="recording-indicator-text" id="recordingIndicatorText">🎙 Someone is recording…</div>
+    </div>
     <div class="record-wrap">
       <button id="sendBtn">&#127897;</button>
       <div class="waveform-wrap" id="waveformWrap">
@@ -417,7 +429,8 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
   </div>
 </div>
 <div class="bottom-nav">
-  <div class="nav-btn active" onclick="showPage('homePage',this)">
+  <div class="nav-btn active" onclick="showPage('homePage',this)" style="position:relative;">
+    <span class="nav-badge" id="homeNavBadge"></span>
     <div class="nav-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_home" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_home" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_home" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_home" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_home"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_home"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_home)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_home)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_home)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_home)" clip-path="url(#circle_home)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_home)"> <path d="M16 10 L8 17 L9.5 17 L9.5 24 L14 24 L14 20 L18 20 L18 24 L22.5 24 L22.5 17 L24 17 Z" fill="white" opacity="0.95"/> <rect x="14" y="20.5" width="4" height="3.5" rx="0.8" fill="rgba(0,20,120,0.5)"/> </g> </g> </svg></div>
     <div class="nav-label">Home</div>
   </div>
@@ -981,18 +994,72 @@ function renderSpeedSend(){const box=document.getElementById('speedSend');box.in
   selectedTarget={...f};
   renderSpeedSend();updateSelectedLabel();
   if(f.isGroup)subscribeToGroupMessages(f.uid,f.members||[]);
-  else subscribeToMessages(f.uid);
+  else{subscribeToMessages(f.uid);subscribeToRecordingPresence(f.uid);}
   renderChat();
 };box.appendChild(chip);});}
 function updateSelectedLabel(){document.getElementById('selectedLabel').textContent=selectedTarget?(selectedTarget.nickname||selectedTarget.name):'None selected';}
 function convId(a,b){return[a,b].sort().join('_');}
 function groupConvId(g){return'group_'+g.replace('grp_','').replace(/[^a-zA-Z0-9]/g,'_');}
-function subscribeToMessages(fuid){if(msgListeners[fuid])return;const cid=convId(currentUser.uid,fuid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[fuid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[fuid]=msgs;if(selectedTarget&&selectedTarget.uid===fuid)renderChat();const hasNew=msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));const dot=document.getElementById('dot-'+fuid);if(dot)dot.classList.toggle('show',hasNew&&!(selectedTarget&&selectedTarget.uid===fuid));});}
+function subscribeToMessages(fuid){if(msgListeners[fuid])return;const cid=convId(currentUser.uid,fuid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[fuid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[fuid]=msgs;if(selectedTarget&&selectedTarget.uid===fuid)renderChat();const hasNew=msgs.some(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid));const dot=document.getElementById('dot-'+fuid);if(dot)dot.classList.toggle('show',hasNew&&!(selectedTarget&&selectedTarget.uid===fuid));updateHomeNavBadge();});}
 function subscribeToGroupMessages(gUid,members){if(msgListeners[gUid])return;const cid=groupConvId(gUid);const q=query(collection(db,'conversations',cid,'messages'),orderBy('sentAt','asc'));msgListeners[gUid]=onSnapshot(q,snap=>{const msgs=[];snap.forEach(d=>msgs.push({firestoreId:d.id,...d.data()}));msgCache[gUid]=msgs;if(selectedTarget&&selectedTarget.uid===gUid)renderChat();});}
+/* ── RECORDING PRESENCE ── */
+let presenceListeners={};
+function subscribeToRecordingPresence(fuid){
+  if(presenceListeners[fuid])return;
+  const cid=convId(currentUser.uid,fuid);
+  presenceListeners[fuid]=onSnapshot(doc(db,'presence',cid),snap=>{
+    const ind=document.getElementById('recordingIndicator');
+    const txt=document.getElementById('recordingIndicatorText');
+    if(!ind||!txt)return;
+    if(snap.exists()&&snap.data().recording&&snap.data().uid!==currentUser.uid){
+      const name=snap.data().name||'Someone';
+      txt.textContent='🎙 '+name+' is recording…';
+      ind.classList.add('show');
+    }else{
+      ind.classList.remove('show');
+    }
+  });
+}
+
+/* ── HOME NAV BADGE ── */
+function updateHomeNavBadge(){
+  const badge=document.getElementById('homeNavBadge');
+  if(!badge)return;
+  let total=0;
+  for(const fuid of Object.keys(msgCache)){
+    const msgs=msgCache[fuid]||[];
+    total+=msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)).length;
+  }
+  if(total>0){
+    badge.textContent=total>99?'99+':total;
+    badge.classList.add('show');
+  }else{
+    badge.classList.remove('show');
+  }
+}
+
 async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=msgCache[fuid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 async function markGroupRead(gUid){const cid=groupConvId(gUid);const msgs=msgCache[gUid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 function renderChat(){const history=document.getElementById('chatHistory');const title=document.getElementById('voiceChatTitle');history.innerHTML='';if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';return;}title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);const msgs=msgCache[selectedTarget.uid]||[];if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);else markRead(selectedTarget.uid);setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);}
-function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():msg.timestamp||'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){
+function timeAgo(date){
+  if(!date)return'';
+  const now=Date.now();
+  const d=date instanceof Date?date:date.toDate?date.toDate():new Date(date);
+  const secs=Math.floor((now-d.getTime())/1000);
+  if(secs<10)return'just now';
+  if(secs<60)return secs+'s ago';
+  const mins=Math.floor(secs/60);
+  if(mins<60)return mins+'m ago';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+'h ago';
+  const days=Math.floor(hrs/24);
+  if(days===1)return'yesterday';
+  if(days<7)return days+'d ago';
+  return d.toLocaleDateString([],{month:'short',day:'numeric'});
+}
+
+function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?timeAgo(msg.sentAt):(msg.timestamp||'');
+  ts.title=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){
     const wrapper=document.createElement('div');
     // Hidden audio element
     const a=document.createElement('audio');a.preload='auto';a.src=msg.audioBase64;
@@ -1163,6 +1230,10 @@ function showPage(id,btn){
   if(id==='notifPage'){
     const nd=document.getElementById('notifNavDot');if(nd)nd.style.display='none';
   }
+  if(id==='homePage'){
+    // Badge clears naturally as messages get marked read
+    updateHomeNavBadge();
+  }
 }
 const NUM_BARS=12;
 function startWaveform(stream){const ctx=new(window.AudioContext||window.webkitAudioContext)();const src=ctx.createMediaStreamSource(stream);analyserNode=ctx.createAnalyser();analyserNode.fftSize=256;src.connect(analyserNode);const data=new Uint8Array(analyserNode.frequencyBinCount);const bars=Array.from({length:NUM_BARS},(_,i)=>document.getElementById('wvb'+i));document.getElementById('waveformWrap').classList.add('active');function draw(){waveAnimId=requestAnimationFrame(draw);analyserNode.getByteFrequencyData(data);bars.forEach((bar,i)=>{if(!bar)return;const v=data[Math.floor(i*(data.length/NUM_BARS/2))];const h=Math.max(4,Math.min(44,(v/255)*44));bar.style.height=h+'px';bar.style.opacity=0.5+(v/255)*0.5;});}draw();}
@@ -1205,7 +1276,7 @@ let recognition=null,liveTranscript='';
 function setupRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}liveTranscript=(liveTranscript+f).trim();};rec.onerror=()=>{};return rec;}
 let mediaRecorder=null,chunks=[],recStream=null;
 function getBestMime(){const a=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];return a.find(m=>MediaRecorder.isTypeSupported(m))||'';}
-function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});playSound('send');btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||'error'));btn.disabled=false;}if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}};reader.readAsDataURL(blob);};mediaRecorder.stop();}function stop(e){e.preventDefault();if(!pressed)return;if(!started){shouldStop=true;return;}doStop();}btn.addEventListener('mousedown',start);btn.addEventListener('mouseup',stop);btn.addEventListener('mouseleave',stop);btn.addEventListener('touchstart',start,{passive:false});btn.addEventListener('touchend',stop,{passive:false});btn.addEventListener('touchcancel',stop,{passive:false});}
+function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');if(selectedTarget&&!selectedTarget.isGroup){const cid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',cid),{uid:currentUser.uid,recording:false,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}if(selectedTarget&&!selectedTarget.isGroup){const pcid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',pcid),{uid:currentUser.uid,name:myName,recording:true,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});playSound('send');btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||'error'));btn.disabled=false;}if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}};reader.readAsDataURL(blob);};mediaRecorder.stop();}function stop(e){e.preventDefault();if(!pressed)return;if(!started){shouldStop=true;return;}doStop();}btn.addEventListener('mousedown',start);btn.addEventListener('mouseup',stop);btn.addEventListener('mouseleave',stop);btn.addEventListener('touchstart',start,{passive:false});btn.addEventListener('touchend',stop,{passive:false});btn.addEventListener('touchcancel',stop,{passive:false});}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
