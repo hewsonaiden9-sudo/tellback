@@ -196,7 +196,8 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
 .tag-input-wrap input{flex:1;margin-top:0;}
 .tag-input-wrap button{padding:0 16px;border:none;border-radius:12px;background:var(--primary);color:white;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
 /* custom status text */
-.status-text-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-top:8px;transition:border-color .15s;}
+.status-text-input{width:100%;padding:8px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-top:8px;transition:border-color .15s,background .3s,color .3s;}
+.status-text-input::placeholder{color:var(--sub);opacity:1;}
 .status-text-input:focus{border-color:var(--primary);}
 .custom-status-display{font-size:11px;color:#a0c0ff;font-family:'DM Sans',sans-serif;margin-top:2px;font-style:italic;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* notification items */
@@ -602,14 +603,27 @@ async function addFriendByTag(){
     const fd=snap.docs[0].data();
     const fuid=snap.docs[0].id;
     if(friends.find(f=>f.uid===fuid)){errEl.textContent='Already friends!';return;}
-    await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone||'',name:fd.name,nickname:'',addedAt:serverTimestamp()});
-    await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});
-    friends.push({uid:fuid,phone:fd.phone||'',name:fd.name,nickname:''});
-    subscribeToFriendStatus(fuid);
-    renderFriends();renderSpeedSend();
+    // Check if a pending request already exists
+    const existingQ=query(collection(db,'notifications'),
+      where('toUid','==',fuid),
+      where('fromUid','==',currentUser.uid),
+      where('type','==','friend_request'),
+      where('dismissed','==',false));
+    const existingSnap=await getDocs(existingQ);
+    if(!existingSnap.empty){errEl.textContent='Request already sent!';return;}
+    // Send a friend request notification — don't add yet
+    await addDoc(collection(db,'notifications'),{
+      toUid:fuid,
+      fromUid:currentUser.uid,
+      fromName:myName,
+      fromTag:myTag||'',
+      type:'friend_request',
+      sentAt:serverTimestamp(),
+      dismissed:false
+    });
     document.getElementById('tagSearchInput').value='';
     errEl.textContent='';
-    showToast('✅ '+fd.name+' added!');
+    showToast('📨 Friend request sent to '+fd.name+'!');
   }catch(e){errEl.textContent='Error: '+e.message;}
 }
 
@@ -729,6 +743,23 @@ function listenForNotifications(){
           showToast('❌ '+n.fromName+' declined "'+n.groupName+'"');
           if(Notification.permission==='granted'&&!vis)
             new Notification('TellBack',{body:n.fromName+' declined your invite to "'+n.groupName+'"',icon:'./icon-192.png'});
+        }else if(n.type==='friend_request'){
+          showToast('👤 '+n.fromName+' sent you a friend request!');
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' wants to add you as a friend',icon:'./icon-192.png'});
+        }else if(n.type==='friend_accepted'){
+          showToast('✅ '+n.fromName+' accepted your friend request!');
+          if(Notification.permission==='granted'&&!vis)
+            new Notification('TellBack',{body:n.fromName+' accepted your friend request',icon:'./icon-192.png'});
+        }else if(n.type==='friend_declined'){
+          showToast('❌ '+n.fromName+' declined your friend request.');
+        }else if(n.type==='friend_removed'){
+          showToast('👋 '+n.fromName+' removed you as a friend.');
+          // Remove them from local friends list too
+          friends=friends.filter(f=>f.uid!==n.fromUid);
+          if(selectedTarget&&selectedTarget.uid===n.fromUid){selectedTarget=null;renderChat();}
+          if(msgListeners[n.fromUid]){msgListeners[n.fromUid]();delete msgListeners[n.fromUid];}
+          renderFriends();renderSpeedSend();
         }else if(n.type==='group_left'){
           showToast('👋 '+n.fromName+' left "'+n.groupName+'"');
           if(Notification.permission==='granted'&&!vis)
@@ -765,7 +796,7 @@ function renderNotifPanel(notifs){
   const badge=document.getElementById('notifBadge');
   const navDot=document.getElementById('notifNavDot');
   if(!list)return;
-  const PANEL_TYPES=['group_invite','group_joined','group_declined','group_left'];
+  const PANEL_TYPES=['group_invite','group_joined','group_declined','group_left','friend_request','friend_accepted','friend_declined','friend_removed'];
   const panel=notifs.filter(n=>PANEL_TYPES.includes(n.type));
   if(!panel.length){
     list.innerHTML='<div class="empty" style="padding:20px 0;"><div class="emoji">🔔</div>No notifications yet</div>';
@@ -782,13 +813,58 @@ function renderNotifPanel(notifs){
       group_invite:{cls:'invite',title:'👥 Group Invite'},
       group_joined:{cls:'joined',title:'✅ Member Joined'},
       group_declined:{cls:'invite',title:'❌ Invite Declined'},
-      group_left:{cls:'joined',title:'👋 Member Left'}
+      group_left:{cls:'joined',title:'👋 Member Left'},
+      friend_request:{cls:'invite',title:'👤 Friend Request'},
+      friend_accepted:{cls:'joined',title:'✅ Friend Request Accepted'},
+      friend_declined:{cls:'invite',title:'❌ Friend Request Declined'},
+      friend_removed:{cls:'invite',title:'👋 Removed as Friend'}
     };
     const tm=typeMap[n.type]||{cls:'joined',title:'🔔 Notification'};
     div.className='notif-item '+tm.cls;
     div.innerHTML='<div class="notif-title">'+tm.title+'</div>';
 
-    if(n.type==='group_invite'){
+    if(n.type==='friend_request'){
+      div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b>'+(n.fromTag?' ('+n.fromTag+')':'')+' wants to add you as a friend.</div>';
+      const acts=document.createElement('div');acts.className='notif-actions';
+      const acc=document.createElement('button');acc.className='notif-btn accept';acc.textContent='Accept';
+      acc.onclick=async()=>{
+        // Add each other as friends
+        try{
+          // Get their user data
+          const theirSnap=await getDoc(doc(db,'users',n.fromUid));
+          if(theirSnap.exists()){
+            const td=theirSnap.data();
+            await setDoc(doc(db,'users',currentUser.uid,'friends',n.fromUid),{uid:n.fromUid,phone:td.phone||'',name:td.name,nickname:'',addedAt:serverTimestamp()});
+            await setDoc(doc(db,'users',n.fromUid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});
+            if(!friends.find(f=>f.uid===n.fromUid)){
+              friends.push({uid:n.fromUid,phone:td.phone||'',name:td.name,nickname:''});
+              subscribeToFriendStatus(n.fromUid);
+              renderFriends();renderSpeedSend();
+            }
+          }
+          // Notify sender they were accepted
+          await addDoc(collection(db,'notifications'),{
+            toUid:n.fromUid,fromUid:currentUser.uid,fromName:myName,
+            type:'friend_accepted',sentAt:serverTimestamp(),dismissed:false
+          });
+        }catch(e){console.warn('Accept error:',e);}
+        await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
+        showToast('✅ '+n.fromName+' added as a friend!');
+      };
+      const rej=document.createElement('button');rej.className='notif-btn reject';rej.textContent='Decline';
+      rej.onclick=async()=>{
+        // Notify sender they were declined
+        try{
+          await addDoc(collection(db,'notifications'),{
+            toUid:n.fromUid,fromUid:currentUser.uid,fromName:myName,
+            type:'friend_declined',sentAt:serverTimestamp(),dismissed:false
+          });
+        }catch(e){}
+        await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
+        showToast('Declined friend request');
+      };
+      acts.appendChild(acc);acts.appendChild(rej);div.appendChild(acts);
+    }else if(n.type==='group_invite'){
       div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> invited you to join <b>"'+n.groupName+'"</b></div>';
       const acts=document.createElement('div');acts.className='notif-actions';
       const acc=document.createElement('button');acc.className='notif-btn accept';acc.textContent='Join Group';
@@ -823,6 +899,12 @@ function renderNotifPanel(notifs){
         div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> declined your invite to <b>"'+n.groupName+'"</b></div>';
       else if(n.type==='group_left')
         div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> left the group <b>"'+n.groupName+'"</b></div>';
+      else if(n.type==='friend_accepted')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> accepted your friend request!</div>';
+      else if(n.type==='friend_declined')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> declined your friend request.</div>';
+      else if(n.type==='friend_removed')
+        div.innerHTML+='<div class="notif-sub"><b>'+n.fromName+'</b> removed you as a friend.</div>';
       const dis=document.createElement('button');dis.className='notif-btn reject';dis.textContent='Dismiss';
       dis.onclick=async()=>{await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});};
       const acts=document.createElement('div');acts.className='notif-actions';acts.appendChild(dis);div.appendChild(acts);
@@ -836,7 +918,27 @@ async function loadFriends(){friends=[];const snap=await getDocs(collection(db,'
 function subscribeToFriendStatus(fuid){onSnapshot(doc(db,'users',fuid),snap=>{if(!snap.exists())return;const f=friends.find(x=>x.uid===fuid);if(f){f.status=snap.data().status||'offline';f.avatar=snap.data().avatar||'';f.customStatus=snap.data().customStatus||'';}renderSpeedSend();renderFriends();});}
 async function confirmAddFriend(){const raw=document.getElementById('friendPhoneInput').value.trim();const nick=document.getElementById('friendNicknameInput').value.trim();const errEl=document.getElementById('addFriendError');const btn=document.getElementById('addFriendBtn');errEl.textContent='';if(!raw){errEl.textContent='Enter a phone number.';return;}const phone=normalizePhone(raw);if(phone===myPhone){errEl.textContent="That's your own number!";return;}btn.disabled=true;btn.textContent='Adding...';try{const q=query(collection(db,'users'),where('phone','==',phone));const snap=await getDocs(q);if(!snap.empty){const fd=snap.docs[0].data(),fuid=snap.docs[0].id;await setDoc(doc(db,'users',currentUser.uid,'friends',fuid),{uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||'',addedAt:serverTimestamp()});await setDoc(doc(db,'users',fuid,'friends',currentUser.uid),{uid:currentUser.uid,phone:myPhone,name:myName,nickname:'',addedAt:serverTimestamp()});friends.push({uid:fuid,phone:fd.phone,name:fd.name,nickname:nick||''});subscribeToFriendStatus(fuid);closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast((nick||fd.name)+' added!');}else{const smsBody=encodeURIComponent(myName+' invited you to TellBack: https://hewsonaiden9-sudo.github.io/tellback');window.open('sms:'+phone+'?body='+smsBody,'_blank');const pid='pending_'+phone.replace(/\D/g,'');await setDoc(doc(db,'users',currentUser.uid,'friends',pid),{uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true,addedAt:serverTimestamp()});friends.push({uid:pid,phone,name:nick||phone,nickname:nick||'',pending:true});closeModal('addFriendModal');renderFriends();renderSpeedSend();showToast('Invite sent to '+phone);}}catch(e){errEl.textContent='Error: '+e.message;}finally{btn.disabled=false;btn.textContent='Add';}}
 function showAddFriendModal(){document.getElementById('friendPhoneInput').value='';document.getElementById('friendNicknameInput').value='';document.getElementById('addFriendError').textContent='';openModal('addFriendModal');setTimeout(()=>document.getElementById('friendPhoneInput').focus(),200);}
-async function removeFriend(uid){if(!confirm('Remove this friend?'))return;await deleteDoc(doc(db,'users',currentUser.uid,'friends',uid));friends=friends.filter(f=>f.uid!==uid);if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();}if(msgListeners[uid]){msgListeners[uid]();delete msgListeners[uid];}renderFriends();renderSpeedSend();}
+async function removeFriend(uid){
+  const f=friends.find(x=>x.uid===uid);
+  const fname=f?f.nickname||f.name:'them';
+  if(!confirm('Remove '+fname+'? They will be notified.'))return;
+  // Delete from both sides
+  await deleteDoc(doc(db,'users',currentUser.uid,'friends',uid)).catch(()=>{});
+  await deleteDoc(doc(db,'users',uid,'friends',currentUser.uid)).catch(()=>{});
+  // Send removal notification to the other person
+  try{
+    await addDoc(collection(db,'notifications'),{
+      toUid:uid,fromUid:currentUser.uid,fromName:myName,
+      type:'friend_removed',sentAt:serverTimestamp(),dismissed:false
+    });
+  }catch(e){}
+  // Clean up locally
+  friends=friends.filter(f=>f.uid!==uid);
+  if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();}
+  if(msgListeners[uid]){msgListeners[uid]();delete msgListeners[uid];}
+  renderFriends();renderSpeedSend();
+  showToast(fname+' removed');
+}
 function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span>'+name+(f.pending?' (pending)':'')+' <small style="opacity:.4;font-size:11px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
 window._rmFriend=removeFriend;
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
