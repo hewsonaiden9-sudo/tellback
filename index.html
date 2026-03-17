@@ -984,8 +984,7 @@ window._rmFriend=removeFriend;
 window._nickFriend=async function(uid){
   const f=friends.find(x=>x.uid===uid);if(!f)return;
   const current=f.nickname||'';
-  const n=prompt('Set nickname for '+f.name+':
-(leave blank to use their real name)',current);
+  const n=prompt('Set nickname for '+f.name+':\n(leave blank to use their real name)',current);
   if(n===null)return; // cancelled
   const nick=n.trim();
   f.nickname=nick;
