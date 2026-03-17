@@ -1005,13 +1005,8 @@ window._inviteToGroup=function(i){
   const eligible=friends.filter(f=>!f.pending&&!(g.members||[]).includes(f.uid));
   if(!eligible.length){showToast('No friends to invite — they may already be in this group');return;}
   // Build a simple select prompt
-  const names=eligible.map((f,idx)=>(idx+1)+'. '+(f.nickname||f.name)).join('
-');
-  const choice=prompt('Invite to "'+g.name+'":
-
-'+names+'
-
-Enter number:');
+  const names=eligible.map((f,idx)=>(idx+1)+'. '+(f.nickname||f.name)).join('\n');
+  const choice=prompt('Invite to "'+g.name+'":\n\n'+names+'\n\nEnter number:');
   if(!choice)return;
   const idx=parseInt(choice)-1;
   if(isNaN(idx)||idx<0||idx>=eligible.length){showToast('Invalid selection');return;}
