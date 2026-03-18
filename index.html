@@ -201,7 +201,10 @@ input[type=text]:focus,input[type=tel]:focus{border-color:var(--primary);box-sha
 /* tag badge */
 .tag-badge{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);border:1.5px solid var(--border);border-radius:10px;padding:6px 12px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:.5px;cursor:pointer;transition:background .15s;}
 .tag-badge:hover{background:var(--primary);color:white;}
+body.dark .tag-badge{background:rgba(79,142,247,.15);border-color:#3a3860;color:#7ab0ff;}
+body.dark .tag-badge:hover{background:var(--primary);color:white;}
 .tag-copy-hint{font-size:10px;color:var(--sub);margin-top:4px;font-family:'Syne',sans-serif;}
+body.dark .tag-copy-hint{color:#6e6c82;}
 /* tag add friend input */
 .tag-input-wrap{display:flex;gap:8px;margin-top:8px;}
 .tag-input-wrap input{flex:1;margin-top:0;}
@@ -369,9 +372,9 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
     <div class="card-title">Profile</div>
     <div class="setting-row" style="gap:14px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <div class="avatar-wrap" onclick="triggerAvatarUpload()" id="settingAvatarWrap">
+        <div class="avatar-wrap" id="settingAvatarWrap" onclick="triggerAvatarUpload()" style="cursor:pointer;">
           <div class="avatar-initials" id="settingAvatarInitials">?</div>
-          <div class="avatar-edit">✏️</div>
+          <div class="avatar-edit" onclick="event.stopPropagation();triggerAvatarUpload();" style="z-index:2;">✏️</div>
         </div>
         <button id="removeAvatarBtn" onclick="removeAvatar()" style="display:none;border:none;background:none;color:var(--danger);font-size:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:6px;">Remove</button>
       </div>
@@ -628,40 +631,30 @@ showToast('Tag copied: '+myTag);
 
 async function addFriendByTag(){
   const raw=document.getElementById('tagSearchInput').value.trim().toUpperCase();
-const errEl=document.getElementById('tagSearchError');
-errEl.textContent='';
-if(!raw||raw.length<5){errEl.textContent='Enter a valid tag e.g. TB-X4K9M2';return;}
-const tag=raw.startsWith('TB-')?raw:'TB-'+raw;
-if(tag===myTag){errEl.textContent="That's your own tag!";return;}
-errEl.textContent='Searching…';
-try{
+  const errEl=document.getElementById('tagSearchError');
+  errEl.textContent='';
+  if(!raw||raw.length<5){errEl.textContent='Enter a valid tag e.g. TB-X4K9M2';return;}
+  const tag=raw.startsWith('TB-')?raw:'TB-'+raw;
+  if(tag===myTag){errEl.textContent="That's your own tag!";return;}
+  errEl.textContent='Searching...';
+  try{
     const q=query(collection(db,'users'),where('tag','==',tag));
-const snap=await getDocs(q);
+    const snap=await getDocs(q);
     if(snap.empty){errEl.textContent='No user found with that tag.';return;}
-const fd=snap.docs[0].data();
+    const fd=snap.docs[0].data();
     const fuid=snap.docs[0].id;
     if(friends.find(f=>f.uid===fuid)){errEl.textContent='Already friends!';return;}
-// Check if a pending request already exists
-    const existingQ=query(collection(db,'notifications'),
-      where('toUid','==',fuid),
-      where('fromUid','==',currentUser.uid),
-      where('type','==','friend_request'),
-      where('dismissed','==',false));
-const existingSnap=await getDocs(existingQ);
+    const existingQ=query(collection(db,'notifications'),where('toUid','==',fuid),where('fromUid','==',currentUser.uid),where('type','==','friend_request'),where('dismissed','==',false));
+    const existingSnap=await getDocs(existingQ);
     if(!existingSnap.empty){errEl.textContent='Request already sent!';return;}
-// Send a friend request notification
     await addDoc(collection(db,'notifications'),{
-toUid:fuid,
-      fromUid:currentUser.uid,
-      fromName:myName,
-      fromTag:myTag||'',
-      type:'friend_request',
-      sentAt:serverTimestamp(),
-      dismissed:false
+      toUid:fuid,fromUid:currentUser.uid,fromName:myName,
+      fromTag:myTag||'',type:'friend_request',
+      sentAt:serverTimestamp(),dismissed:false
     });
     document.getElementById('tagSearchInput').value='';
-errEl.textContent='';
-showToast('📨 Friend request sent to '+fd.name+'!');
+    errEl.textContent='';
+    showToast('Friend request sent to '+fd.name+'!');
   }catch(e){errEl.textContent='Error: '+e.message;}
 }
 
