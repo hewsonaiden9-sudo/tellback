@@ -648,16 +648,21 @@ const fd=snap.docs[0].data();
       where('dismissed','==',false));
 const existingSnap=await getDocs(existingQ);
     if(!existingSnap.empty){errEl.textContent='Request already sent!';return;}
-// Send a friend request notification — don't add yet\n    await addDoc(collection(db,'notifications'),{
+// Send a friend request notification
+    await addDoc(collection(db,'notifications'),{
 toUid:fuid,
       fromUid:currentUser.uid,
       fromName:myName,
-      fromTag:myTag||'',\n      type:'friend_request',\n      sentAt:serverTimestamp(),
+      fromTag:myTag||'',
+      type:'friend_request',
+      sentAt:serverTimestamp(),
       dismissed:false
     });
     document.getElementById('tagSearchInput').value='';
 errEl.textContent='';
-showToast('📨 Friend request sent to '+fd.name+'!');\n  }catch(e){errEl.textContent='Error: '+e.message;}\n}
+showToast('📨 Friend request sent to '+fd.name+'!');
+  }catch(e){errEl.textContent='Error: '+e.message;}
+}
 
 /* ── INVITE LINK ── */
 function shareInviteLink(){
@@ -665,9 +670,11 @@ function shareInviteLink(){
 const msg=myName+' is using TellBack for voice messages! Join here: '+link+(myTag?' — Add me with tag: '+myTag:'');
 // Try Web Share API first
   if(navigator.share){
-    navigator.share({title:'TellBack',text:msg,url:link}).catch(()=>{});\n  }else{
+    navigator.share({title:'TellBack',text:msg,url:link}).catch(()=>{});
+  }else{
     // Fall back to SMS
-    window.open('sms:?body='+encodeURIComponent(msg),'_blank');\n  }
+    window.open('sms:?body='+encodeURIComponent(msg),'_blank');
+  }
 }
 
 /* ── CUSTOM STATUS ── */
@@ -678,13 +685,15 @@ myCustomStatus=val;
   updateCustomStatusDisplay();
   clearTimeout(statusSaveTimer);
   statusSaveTimer=setTimeout(async()=>{
-    try{await setDoc(doc(db,'users',currentUser.uid),{customStatus:val},{merge:true});}catch(e){}\n  },800);
+    try{await setDoc(doc(db,'users',currentUser.uid),{customStatus:val},{merge:true});}catch(e){}
+  },800);
 }
 function updateCustomStatusDisplay(){
   const el=document.getElementById('headerCustomStatus');
 if(!el)return;
   if(myCustomStatus){el.textContent=myCustomStatus;el.style.display='block';}
-else el.style.display='none';\n}
+else el.style.display='none';
+}
 const dT=()=>document.getElementById('darkToggle');
 const tT=()=>document.getElementById('transcriptToggle');
 const aT=()=>document.getElementById('autoDeleteToggle');
@@ -702,7 +711,8 @@ e.textContent='';
 if(!raw){e.textContent='Please enter your phone number first.';return;}
 const phone=normalizePhone(raw);
   if(phone.replace(/\D/g,'').length<8){e.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
-showToast('Number saved — complete the check below');\n}
+showToast('Number saved — complete the check below');
+}
 document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{inp.addEventListener('input',()=>{if(inp.value.length===1&&i<arr.length-1)arr[i+1].focus();if(inp.value.length===1&&i===arr.length-1)verifyCode();});inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)arr[i-1].focus();});});
 async function verifyCode(){const code=[0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');const e=document.getElementById('authError2');e.textContent='';if(code.length<6){e.textContent='Enter all 6 digits.';return;}const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.textContent='Verifying...';try{await confirmResult.confirm(code);}catch(err){e.textContent='Incorrect code. Please try again.';[0,1,2,3,4,5].forEach(i=>document.getElementById('otp'+i).value='');document.getElementById('otp0').focus();}finally{btn.disabled=false;btn.textContent='Verify';}}
 function goBackToStep1(){document.getElementById('authStep2').classList.remove('active');document.getElementById('authStep1').classList.add('active');document.getElementById('authError2').textContent='';}
@@ -723,7 +733,8 @@ updateStatusUI(myStatus);
 if(snap.exists()){
       myAvatar=snap.data().avatar||'';
 myCustomStatus=snap.data().customStatus||'';
-if(myCustomStatus&&document.getElementById('customStatusInput'))\n        document.getElementById('customStatusInput').value=myCustomStatus;
+if(myCustomStatus&&document.getElementById('customStatusInput'))
+        document.getElementById('customStatusInput').value=myCustomStatus;
 updateCustomStatusDisplay();
     }
   }catch(e){}
@@ -830,14 +841,16 @@ await deleteDoc(doc(db,'users',uid,'friends',currentUser.uid)).catch(()=>{});
   try{
     await addDoc(collection(db,'notifications'),{
 toUid:uid,fromUid:currentUser.uid,fromName:myName,
-      type:'friend_removed',sentAt:serverTimestamp(),dismissed:false\n    });
+      type:'friend_removed',sentAt:serverTimestamp(),dismissed:false
+    });
   }catch(e){}
   // Clean up locally
   friends=friends.filter(f=>f.uid!==uid);
   if(selectedTarget&&selectedTarget.uid===uid){selectedTarget=null;renderChat();}
   if(msgListeners[uid]){msgListeners[uid]();delete msgListeners[uid];}
   renderFriends();renderSpeedSend();
-  showToast(fname+' removed');\n}
+  showToast(fname+' removed');
+}
 function renderFriends(){const list=document.getElementById('friendsList'),empty=document.getElementById('friendsEmpty');list.innerHTML='';if(!friends.length){empty.classList.remove('hidden');return;}empty.classList.add('hidden');friends.forEach((f,i)=>{const name=f.nickname||f.name;const sc=SC[f.status||'offline'];const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'ms';div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+sc+';flex-shrink:0;display:inline-block;"></span><span style="font-weight:600;">'+name+'</span>'+(f.pending?' <small style="color:var(--sub);font-size:11px;">(pending)</small>':'')+'</span>'+(f.nickname?'<small style="opacity:.45;font-size:11px;padding-left:17px;">Real name: '+f.name+'</small>':'')+'<small style="opacity:.35;font-size:10px;padding-left:17px;">'+f.phone+'</small></span><div class="item-actions"><button class="action-btn rename" onclick="window._nickFriend(\''+f.uid+'\')">Nickname</button><button class="action-btn remove" onclick="window._rmFriend(\''+f.uid+'\')">Remove</button></div>';list.appendChild(div);});}
 window._rmFriend=removeFriend;
 window._nickFriend=async function(uid){
