@@ -477,6 +477,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+const firebaseConfig={apiKey:"AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",authDomain:"tellback-68a28.firebaseapp.com",projectId:"tellback-68a28",storageBucket:"tellback-68a28.firebasestorage.app",messagingSenderId:"847309476601",appId:"1:847309476601:web:e2ce35491762b7012b4828"};
 const fbApp=initializeApp(firebaseConfig);
 const auth=getAuth(fbApp);const db=getFirestore(fbApp);const messaging=getMessaging(fbApp);
 const VAPID_KEY='BJcJqLGGDoK9_9JMPKptqqb8iflEVZVt4WL-rllHwWmA7WX0j8nW52KnHSdacOnrFq5H5Cqv0l9KtbxE2LH71ng';
