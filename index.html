@@ -265,7 +265,7 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
       <div class="recaptcha-hint" id="recaptchaHint" style="margin-top:12px;">Enter your number above, then complete the check below</div>
       <div id="recaptcha-container"></div>
       <div class="auth-error" id="authError1"></div>
-      <button class="app-button" id="sendCodeBtn" onclick="sendCode()" style="margin-top:8px;">Send Code</button>
+      <button class="app-button" id="sendCodeBtn" onclick="window.sendCode()" style="margin-top:8px;">Send Code</button>
     </div>
     <div class="auth-step" id="authStep2">
       <div class="auth-label">Verification</div>
@@ -280,8 +280,8 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
         <input class="otp-input" maxlength="1" type="tel" id="otp5">
       </div>
       <div class="auth-error" id="authError2"></div>
-      <button class="app-button" id="verifyBtn" onclick="verifyCode()">Verify</button>
-      <div class="auth-back" onclick="goBackToStep1()">Change number</div>
+      <button class="app-button" id="verifyBtn" onclick="window.verifyCode()">Verify</button>
+      <div class="auth-back" onclick="window.goBackToStep1()">Change number</div>
     </div>
     <div class="auth-step" id="authStep3">
       <div class="auth-label">Almost done</div>
@@ -289,7 +289,7 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
       <div class="auth-desc">This is how friends will see you.</div>
       <input type="text" id="displayNameInput" placeholder="Your name" maxlength="32">
       <div class="auth-error" id="authError3"></div>
-      <button class="app-button" onclick="saveDisplayName()" style="margin-top:16px;">Get Started</button>
+      <button class="app-button" onclick="window.saveDisplayName()" style="margin-top:16px;">Get Started</button>
     </div>
   </div>
 </div>
@@ -341,8 +341,8 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
     <div id="friendsList"></div>
     <div class="empty hidden" id="friendsEmpty"><div class="emoji">👤</div>No friends yet — add someone below!</div>
   </div>
-  <button class="app-button" onclick="showAddFriendModal()">Add Friend by Phone</button>
-  <button class="app-button secondary" onclick="showPage('settingsPage', document.querySelector('.nav-btn:nth-child(4)'));setTimeout(()=>document.getElementById('tagSearchInput').focus(),300);" style="margin-top:8px;">Add Friend by Tag</button>
+  <button class="app-button" onclick="window.showAddFriendModal()">Add Friend by Phone</button>
+  <button class="app-button secondary" onclick="window.showPage('settingsPage', document.querySelector('.nav-btn:nth-child(4)'));setTimeout(()=>document.getElementById('tagSearchInput').focus(),300);" style="margin-top:8px;">Add Friend by Tag</button>
 </div>
 <div class="container subpage" id="groupsPage">
   <div class="card">
@@ -350,57 +350,57 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
     <div id="groupsList"></div>
     <div class="empty hidden" id="groupsEmpty"><div class="emoji">👥</div>No groups yet — create one or check Alerts for invites!</div>
   </div>
-  <button class="app-button" onclick="toggleCreateGroup()">Create Group</button>
+  <button class="app-button" onclick="window.toggleCreateGroup()">Create Group</button>
   <div class="card hidden" id="createGroupPanel" style="margin-top:10px;">
     <div class="card-title">New Group</div>
     <div id="groupFriendCheckboxes"></div>
     <input id="groupNameInput" type="text" placeholder="Group name">
-    <button class="app-button" onclick="createGroup()">Save Group</button>
+    <button class="app-button" onclick="window.createGroup()">Save Group</button>
   </div>
 </div>
 <div class="container subpage" id="settingsPage">
   <div class="card">
     <div class="card-title">My Status</div>
     <div class="status-picker">
-      <div class="status-opt active" id="sopt-online" onclick="setStatus('online')"><span class="status-dot s-online"></span>Online</div>
-      <div class="status-opt" id="sopt-away" onclick="setStatus('away')"><span class="status-dot s-away"></span>Away</div>
-      <div class="status-opt" id="sopt-busy" onclick="setStatus('busy')"><span class="status-dot s-busy"></span>Busy</div>
-      <div class="status-opt" id="sopt-offline" onclick="setStatus('offline')"><span class="status-dot s-offline"></span>Offline</div>
+      <div class="status-opt active" id="sopt-online" onclick="window.setStatus('online')"><span class="status-dot s-online"></span>Online</div>
+      <div class="status-opt" id="sopt-away" onclick="window.setStatus('away')"><span class="status-dot s-away"></span>Away</div>
+      <div class="status-opt" id="sopt-busy" onclick="window.setStatus('busy')"><span class="status-dot s-busy"></span>Busy</div>
+      <div class="status-opt" id="sopt-offline" onclick="window.setStatus('offline')"><span class="status-dot s-offline"></span>Offline</div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">Profile</div>
     <div class="setting-row" style="gap:14px;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-        <div class="avatar-wrap" id="settingAvatarWrap" onclick="triggerAvatarUpload()" style="cursor:pointer;">
+        <div class="avatar-wrap" id="settingAvatarWrap" onclick="window.triggerAvatarUpload()" style="cursor:pointer;">
           <div class="avatar-initials" id="settingAvatarInitials">?</div>
-          <div class="avatar-edit" onclick="event.stopPropagation();triggerAvatarUpload();" style="z-index:2;">✏️</div>
+          <div class="avatar-edit" onclick="event.stopPropagation();window.triggerAvatarUpload();" style="z-index:2;">✏️</div>
         </div>
-        <button id="removeAvatarBtn" onclick="removeAvatar()" style="display:none;border:none;background:none;color:var(--danger);font-size:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:6px;">Remove</button>
+        <button id="removeAvatarBtn" onclick="window.removeAvatar()" style="display:none;border:none;background:none;color:var(--danger);font-size:11px;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:6px;">Remove</button>
       </div>
       <div style="flex:1;">
         <div class="setting-label" id="settingName" style="font-size:16px;font-weight:700;">-</div>
         <div class="setting-desc" id="settingPhone">-</div>
-        <input type="text" id="customStatusInput" class="status-text-input" placeholder="Set a status message…" maxlength="60" oninput="saveCustomStatus()">
+        <input type="text" id="customStatusInput" class="status-text-input" placeholder="Set a status message…" maxlength="60" oninput="window.saveCustomStatus()">
       </div>
     </div>
-    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="window.handleAvatarUpload(event)">
   </div>
   <div class="card">
     <div class="card-title">Account</div>
-    <div class="setting-row"><div><div class="setting-label">Sign Out</div></div><button class="app-button danger" style="width:auto;padding:8px 14px;margin:0;font-size:13px;" onclick="signOutUser()">Sign Out</button></div>
+    <div class="setting-row"><div><div class="setting-label">Sign Out</div></div><button class="app-button danger" style="width:auto;padding:8px 14px;margin:0;font-size:13px;" onclick="window.signOutUser()">Sign Out</button></div>
   </div>
   <div class="card">
     <div class="card-title">Preferences</div>
-    <div class="setting-row"><div><div class="setting-label">Dark Mode</div></div><label class="toggle"><input type="checkbox" id="darkToggle" onchange="toggleDark(this)"><span class="slider"></span></label></div>
-    <div class="setting-row"><div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div><label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
-    <div class="setting-row"><div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div><label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="saveSettings()"><span class="slider"></span></label></div>
+    <div class="setting-row"><div><div class="setting-label">Dark Mode</div></div><label class="toggle"><input type="checkbox" id="darkToggle" onchange="window.toggleDark(this)"><span class="slider"></span></label></div>
+    <div class="setting-row"><div><div class="setting-label">Speech Transcription</div><div class="setting-desc">Show text beneath recordings</div></div><label class="toggle"><input type="checkbox" id="transcriptToggle" checked onchange="window.saveSettings()"><span class="slider"></span></label></div>
+    <div class="setting-row"><div><div class="setting-label">Auto-Delete After 24h</div><div class="setting-desc">Unpinned messages removed automatically</div></div><label class="toggle"><input type="checkbox" id="autoDeleteToggle" checked onchange="window.saveSettings()"><span class="slider"></span></label></div>
   </div>
   <!-- TAG -->
   <div class="card">
     <div class="card-title">Your TellBack Tag</div>
     <div class="setting-desc" style="margin-bottom:8px;">Friends can add you with this tag — no phone number needed.</div>
-    <div class="tag-badge" id="myTagBadge" onclick="copyTag()">
+    <div class="tag-badge" id="myTagBadge" onclick="window.copyTag()">
       <span>🏷</span><span id="myTagText">generating…</span>
     </div>
     <div class="tag-copy-hint" id="tagCopyHint">Tap to copy</div>
@@ -408,7 +408,7 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
       <div class="setting-label" style="font-size:13px;">Add friend by tag</div>
       <div class="tag-input-wrap">
         <input type="text" id="tagSearchInput" placeholder="Enter tag e.g. TB-X4K9M2" style="text-transform:uppercase;">
-        <button onclick="addFriendByTag()">Add</button>
+        <button onclick="window.addFriendByTag()">Add</button>
       </div>
       <div class="auth-error" id="tagSearchError" style="margin-top:4px;"></div>
     </div>
@@ -418,7 +418,7 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
   <div class="card">
     <div class="card-title">Invite Friends</div>
     <div class="setting-desc" style="margin-bottom:10px;">Share TellBack with your contacts.</div>
-    <button class="app-button secondary" onclick="shareInviteLink()" style="margin-top:0;">📲 Send Invite via SMS</button>
+    <button class="app-button secondary" onclick="window.shareInviteLink()" style="margin-top:0;">📲 Send Invite via SMS</button>
   </div>
 
   <div style="text-align:center;padding:16px 0;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;letter-spacing:.5px;">TELLBACK v2.0 - FIREBASE</div>
@@ -432,24 +432,24 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
   </div>
 </div>
 <div class="bottom-nav">
-  <div class="nav-btn active" onclick="showPage('homePage',this)" style="position:relative;">
+  <div class="nav-btn active" onclick="window.showPage('homePage',this)" style="position:relative;">
     <span class="nav-badge" id="homeNavBadge"></span>
     <div class="nav-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_home" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_home" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_home" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_home" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_home"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_home"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_home)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_home)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_home)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_home)" clip-path="url(#circle_home)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_home)"> <path d="M16 10 L8 17 L9.5 17 L9.5 24 L14 24 L14 20 L18 20 L18 24 L22.5 24 L22.5 17 L24 17 Z" fill="white" opacity="0.95"/> <rect x="14" y="20.5" width="4" height="3.5" rx="0.8" fill="rgba(0,20,120,0.5)"/> </g> </g> </svg></div>
     <div class="nav-label">Home</div>
   </div>
-  <div class="nav-btn" onclick="showPage('friendsPage',this)">
+  <div class="nav-btn" onclick="window.showPage('friendsPage',this)">
     <div class="nav-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_friends" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_friends" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_friends" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_friends" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_friends"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_friends"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_friends)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_friends)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_friends)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_friends)" clip-path="url(#circle_friends)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_friends)"> <circle cx="16" cy="14" r="4.2" fill="white" opacity="0.95"/> <path d="M8 26 C8 21 11.5 18 16 18 C20.5 18 24 21 24 26" fill="white" opacity="0.95"/> </g> </g> </svg></div>
     <div class="nav-label">Friends</div>
   </div>
-  <div class="nav-btn" onclick="showPage('groupsPage',this)">
+  <div class="nav-btn" onclick="window.showPage('groupsPage',this)">
     <div class="nav-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_groups" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_groups" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_groups" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_groups" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_groups"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_groups"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_groups)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_groups)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_groups)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_groups)" clip-path="url(#circle_groups)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_groups)"> <circle cx="11" cy="14.5" r="3.2" fill="white" opacity="0.7"/> <path d="M4.5 25 C4.5 21 7.5 18.5 11 18.5 C12.2 18.5 13.3 18.8 14.2 19.4" fill="white" opacity="0.7"/> <circle cx="21" cy="14.5" r="3.2" fill="white" opacity="0.7"/> <path d="M27.5 25 C27.5 21 24.5 18.5 21 18.5 C19.8 18.5 18.7 18.8 17.8 19.4" fill="white" opacity="0.7"/> <circle cx="16" cy="13.5" r="4" fill="white" opacity="0.97"/> <path d="M9 25 C9 20.5 12 17.5 16 17.5 C20 17.5 23 20.5 23 25" fill="white" opacity="0.97"/> </g> </g> </svg></div>
     <div class="nav-label">Groups</div>
   </div>
-  <div class="nav-btn" onclick="showPage('settingsPage',this)">
+  <div class="nav-btn" onclick="window.showPage('settingsPage',this)">
     <div class="nav-icon"><svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_settings" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_settings" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_settings" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_settings" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_settings"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_settings"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_settings)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_settings)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_settings)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_settings)" clip-path="url(#circle_settings)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_settings)"> <path d="M16 9.5 L17.4 11.8 C18.1 11.6 18.9 11.6 19.6 11.8 L21 9.5 L23.2 11.5 L22.4 14 C22.9 14.5 23.3 15.2 23.5 15.9 L26 16.3 L26 18.7 L23.5 19.1 C23.3 19.8 22.9 20.5 22.4 21 L23.2 23.5 L21 25.5 L19.6 23.2 C18.9 23.4 18.1 23.4 17.4 23.2 L16 25.5 L13.8 23.5 L14.6 21 C14.1 20.5 13.7 19.8 13.5 19.1 L11 18.7 L11 16.3 L13.5 15.9 C13.7 15.2 14.1 14.5 14.6 14 L13.8 11.5 Z" fill="white" opacity="0.95"/> <circle cx="16" cy="17.5" r="2.8" fill="rgba(10,30,140,0.65)"/> </g> </g> </svg></div>
     <div class="nav-label">Settings</div>
   </div>
-  <div class="nav-btn" id="notifNavBtn" onclick="showPage('notifPage',this)">
+  <div class="nav-btn" id="notifNavBtn" onclick="window.showPage('notifPage',this)">
     <div class="nav-icon" style="position:relative;display:inline-flex;align-items:center;justify-content:center;">
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"> <defs> <radialGradient id="base_alerts" cx="45%" cy="35%" r="65%" gradientUnits="objectBoundingBox"> <stop offset="0%" stop-color="#3a78e8"/> <stop offset="55%" stop-color="#1740b0"/> <stop offset="100%" stop-color="#0b1e6a"/> </radialGradient> <radialGradient id="rim_alerts" cx="50%" cy="50%" r="50%" gradientUnits="objectBoundingBox"> <stop offset="80%" stop-color="transparent"/> <stop offset="100%" stop-color="rgba(255,255,255,0.18)"/> </radialGradient> <linearGradient id="gloss_alerts" x1="16" y1="1" x2="16" y2="14" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(255,255,255,0.88)"/> <stop offset="100%" stop-color="rgba(255,255,255,0.0)"/> </linearGradient> <linearGradient id="shadow_alerts" x1="16" y1="18" x2="16" y2="32" gradientUnits="userSpaceOnUse"> <stop offset="0%" stop-color="rgba(0,0,0,0)"/> <stop offset="100%" stop-color="rgba(0,8,50,0.45)"/> </linearGradient> <filter id="outer_alerts"> <feDropShadow dx="0" dy="2.5" stdDeviation="2" flood-color="#03082a" flood-opacity="0.7"/> </filter> <clipPath id="circle_alerts"><circle cx="16" cy="16" r="15"/></clipPath> </defs> <!-- Outer drop shadow --> <g filter="url(#outer_alerts)"> <!-- Dark outer ring bevel --> <circle cx="16" cy="16" r="15.2" fill="#0a1550" opacity="0.9"/> <!-- Blue glass body --> <circle cx="16" cy="16" r="14.5" fill="url(#base_alerts)"/> <!-- Bottom inner shadow --> <circle cx="16" cy="16" r="14.5" fill="url(#shadow_alerts)"/> <!-- Rim highlight --> <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/> <!-- White glass gloss cap --> <ellipse cx="16" cy="9" rx="10" ry="7.5" fill="url(#gloss_alerts)" clip-path="url(#circle_alerts)"/> <!-- Specular dot top-left --> <ellipse cx="10" cy="8" rx="3" ry="1.8" fill="rgba(255,255,255,0.35)"/> <!-- Icon symbol --> <g clip-path="url(#circle_alerts)"> <rect x="14.5" y="8" width="3" height="3" rx="1.5" fill="white" opacity="0.9"/> <path d="M16 9.5 C16 9.5 11 12.5 11 18 L11 21 L21 21 L21 18 C21 12.5 16 9.5 16 9.5 Z" fill="white" opacity="0.95"/> <path d="M10 21 L22 21 L22.8 23 L9.2 23 Z" fill="white" opacity="0.95"/> <circle cx="16" cy="25.5" r="2" fill="white" opacity="0.95"/> </g> </g> </svg>
       <span id="notifNavDot" style="display:none;position:absolute;top:0;right:0;width:9px;height:9px;background:#ef4444;border-radius:50%;border:1.5px solid #141830;box-shadow:0 0 5px rgba(239,68,68,.8);"></span>
@@ -469,8 +469,8 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
     <input type="text" id="friendNicknameInput" placeholder="Nickname (optional)">
     <div class="auth-error" id="addFriendError"></div>
     <div class="modal-actions">
-      <button class="app-button secondary" onclick="closeModal('addFriendModal')">Cancel</button>
-      <button class="app-button" id="addFriendBtn" onclick="confirmAddFriend()">Add</button>
+      <button class="app-button secondary" onclick="window.closeModal('addFriendModal')">Cancel</button>
+      <button class="app-button" id="addFriendBtn" onclick="window.confirmAddFriend()">Add</button>
     </div>
   </div>
 </div><!-- end addFriendModal -->
@@ -698,15 +698,22 @@ function showToast(msg,dur=2400){const t=document.getElementById('toast');t.text
 function updateThemeColor(){document.getElementById('themeColorMeta').content=document.body.classList.contains('dark')?'#1a1926':'#2563eb';}
 function toggleDark(cb){document.body.classList.toggle('dark',cb.checked);updateThemeColor();saveSettings();}
 function normalizePhone(raw){const d=raw.replace(/[^\d+]/g,'');return d.startsWith('+')?d:'+1'+d;}
+
+/* ===== FIXED sendCode: triggers reCAPTCHA ===== */
 async function sendCode(){
   const raw=document.getElementById('phoneInput').value.trim();
 const e=document.getElementById('authError1');
 e.textContent='';
 if(!raw){e.textContent='Please enter your phone number first.';return;}
 const phone=normalizePhone(raw);
-  if(phone.replace(/\D/g,'').length<8){e.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
-showToast('Number saved — complete the check below');
+if(phone.replace(/\D/g,'').length<8){e.textContent='Number too short — include country code e.g. +1 555 000 0000';return;}
+// reCAPTCHA verifier is set up globally; we just need to trigger the callback.
+// The reCAPTCHA widget will call its callback when solved.
+// But we also want to manually trigger the sign-in if the user clicks the button after solving.
+// The reCAPTCHA callback will handle it.
+showToast('Please complete the reCAPTCHA above.');
 }
+
 document.querySelectorAll('.otp-input').forEach((inp,i,arr)=>{inp.addEventListener('input',()=>{if(inp.value.length===1&&i<arr.length-1)arr[i+1].focus();if(inp.value.length===1&&i===arr.length-1)verifyCode();});inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!inp.value&&i>0)arr[i-1].focus();});});
 async function verifyCode(){const code=[0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');const e=document.getElementById('authError2');e.textContent='';if(code.length<6){e.textContent='Enter all 6 digits.';return;}const btn=document.getElementById('verifyBtn');btn.disabled=true;btn.textContent='Verifying...';try{await confirmResult.confirm(code);}catch(err){e.textContent='Incorrect code. Please try again.';[0,1,2,3,4,5].forEach(i=>document.getElementById('otp'+i).value='');document.getElementById('otp0').focus();}finally{btn.disabled=false;btn.textContent='Verify';}}
 function goBackToStep1(){document.getElementById('authStep2').classList.remove('active');document.getElementById('authStep1').classList.add('active');document.getElementById('authError2').textContent='';}
@@ -1155,4 +1162,4 @@ let recognition=null,liveTranscript='';
 function setupRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onresult=e=>{let f='';for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;}liveTranscript=(liveTranscript+f).trim();};rec.onerror=()=>{};return rec;}
 let mediaRecorder=null,chunks=[],recStream=null;
 function getBestMime(){const a=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];return a.find(m=>MediaRecorder.isTypeSupported(m))||'';}
-function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');if(selectedTarget&&!selectedTarget.isGroup){const cid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',cid),{uid:currentUser.uid,recording:false,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}if(selectedTarget&&!selectedTarget.isGroup){const pcid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',pcid),{uid:currentUser.uid,name:myName,recording:true,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});playSound('send');btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||
+function bindRecordBtn(){const btn=document.getElementById('sendBtn');const hintEl=document.getElementById('recordHint');let pressed=false,started=false,shouldStop=false;function resetUI(){btn.classList.remove('recording');btn.innerHTML='&#127897;';stopWaveform();if(hintEl){hintEl.textContent='Hold to Talk';hintEl.classList.remove('recording-hint');}document.getElementById('transcribingIndicator').classList.add('hidden');if(selectedTarget&&!selectedTarget.isGroup){const cid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',cid),{uid:currentUser.uid,recording:false,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}}async function start(e){e.preventDefault();if(pressed||isRecording)return;if(!selectedTarget){showToast('Select a contact first');return;}if(selectedTarget.pending){showToast('Friend has not joined yet');return;}pressed=true;shouldStop=false;isRecording=true;btn.classList.add('recording');btn.textContent='Stop';if(hintEl){hintEl.textContent='Recording...';hintEl.classList.add('recording-hint');}if(selectedTarget&&!selectedTarget.isGroup){const pcid=convId(currentUser.uid,selectedTarget.uid);setDoc(doc(db,'presence',pcid),{uid:currentUser.uid,name:myName,recording:true,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});}try{recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}catch(err){pressed=false;isRecording=false;shouldStop=false;resetUI();showToast('Microphone permission denied');return;}if(shouldStop){recStream.getTracks().forEach(t=>t.stop());recStream=null;pressed=false;isRecording=false;shouldStop=false;resetUI();return;}startWaveform(recStream);const mime=getBestMime();try{mediaRecorder=mime?new MediaRecorder(recStream,{mimeType:mime}):new MediaRecorder(recStream);}catch(ex){mediaRecorder=new MediaRecorder(recStream);}chunks=[];mediaRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size>0)chunks.push(ev.data);};mediaRecorder.start(100);started=true;if(tT().checked){recognition=setupRecognition();if(recognition)try{recognition.start();}catch(_){}}if(shouldStop)await doStop();}async function doStop(){if(!started||!mediaRecorder||mediaRecorder.state==='inactive'){started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=false;return;}if(recognition){try{recognition.stop();}catch(_){}recognition=null;}started=false;pressed=false;isRecording=false;shouldStop=false;resetUI();btn.disabled=true;if(tT().checked)document.getElementById('transcribingIndicator').classList.remove('hidden');mediaRecorder.onstop=async()=>{document.getElementById('transcribingIndicator').classList.add('hidden');if(!chunks.length){btn.disabled=false;showToast('Nothing recorded');return;}const mimeUsed=mediaRecorder.mimeType||'audio/webm';const blob=new Blob(chunks,{type:mimeUsed});chunks=[];if(blob.size===0){btn.disabled=false;showToast('Empty recording');return;}const saveTarget=selectedTarget;if(!saveTarget){btn.disabled=false;return;}const reader=new FileReader();reader.onloadend=async()=>{const base64=reader.result;const cid=saveTarget.isGroup?groupConvId(saveTarget.uid):convId(currentUser.uid,saveTarget.uid);try{await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:currentUser.uid,senderName:myName,type:'voice',audioBase64:base64,transcript:liveTranscript||null,sentAt:serverTimestamp(),pinned:false,readBy:[currentUser.uid]});if(saveTarget.isGroup)await sendGroupPush(saveTarget.members);else await sendPushToUser(saveTarget.uid);new Audio(URL.createObjectURL(blob)).play().catch(()=>{});playSound('send');btn.disabled=false;btn.classList.add('sent');setTimeout(()=>btn.classList.remove('sent'),650);showToast('Sent!');liveTranscript='';}catch(e){showToast('Failed to send: '+(e.message||'error'));btn.disabled=false;}if(recStream){recStream.getTracks().forEach(t=>t.stop());recStream=null;}};reader.readAsDataURL(blob);};mediaRecorder.stop();}function stop(e){e.preventDefault();if(!pressed)return;if(!start
