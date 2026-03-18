@@ -485,7 +485,8 @@ let friends=[],groups=JSON.parse(localStorage.getItem('tb_groups')||'[]');
 let selectedTarget=null,isRecording=false,msgListeners={},msgCache={};
 let confirmResult=null,recaptchaVerifier=null,analyserNode=null,waveAnimId=null;
 const SC={online:'#22c55e',away:'#f59e0b',busy:'#ef4444',offline:'#94a3b8'};
-let myAvatar=''; // base64 data URL\nlet myCustomStatus='';
+let myAvatar=''; // base64 data URL
+let myCustomStatus='';
 /* ── SOUNDS ── */
 function playSound(type){
   try{
@@ -542,10 +543,13 @@ ctx.drawImage(img,0,0,w,h);
     myAvatar=canvas.toDataURL('image/jpeg',0.8);
 await setDoc(doc(db,'users',currentUser.uid),{avatar:myAvatar},{merge:true});
 renderSettingsAvatar();renderSpeedSend();
-    showToast('✅ Profile picture updated');\n  }catch(e){
+    showToast('✅ Profile picture updated');
+  }catch(e){
     console.error('Avatar upload error:',e);
-showToast('Failed to upload: '+(e.message||'unknown error'));\n  }
-  event.target.value='';\n}
+showToast('Failed to upload: '+(e.message||'unknown error'));
+  }
+  event.target.value='';
+}
 function renderSettingsAvatar(){
   const wrap=document.getElementById('settingAvatarWrap');
 const initEl=document.getElementById('settingAvatarInitials');
@@ -557,9 +561,11 @@ if(myAvatar){
 const img=document.createElement('img');
 img.src=myAvatar;img.className='avatar-img';
 wrap.insertBefore(img,wrap.firstChild);
-    if(removeBtn)removeBtn.style.display='block';\n  }else{
+    if(removeBtn)removeBtn.style.display='block';
+  }else{
     if(initEl){initEl.style.display='flex';initEl.textContent=getInitials(myName)||'?';}
-if(removeBtn)removeBtn.style.display='none';\n  }
+if(removeBtn)removeBtn.style.display='none';
+  }
 }
 
 async function removeAvatar(){
@@ -568,7 +574,8 @@ myAvatar='';
 try{await setDoc(doc(db,'users',currentUser.uid),{avatar:''},{merge:true});}catch(e){}
 renderSettingsAvatar();
   renderSpeedSend();
-  showToast('Profile picture removed');\n}
+  showToast('Profile picture removed');
+}
 
 /* ══════════════════════════════
    TAG SYSTEM
@@ -606,14 +613,17 @@ break;
     }
     const el=document.getElementById('myTagText');
 if(el) el.textContent=myTag;
-  }catch(e){console.warn('Tag init failed:',e);}\n}
+  }catch(e){console.warn('Tag init failed:',e);}
+}
 
 function copyTag(){
   if(!myTag) return;
   navigator.clipboard.writeText(myTag).then(()=>{
     const hint=document.getElementById('tagCopyHint');
 if(hint){hint.textContent='✅ Copied!';setTimeout(()=>{hint.textContent='Tap to copy';},2000);}
-showToast('Tag copied: '+myTag);\n  }).catch(()=>showToast('Tag: '+myTag));\n}
+showToast('Tag copied: '+myTag);
+  }).catch(()=>showToast('Tag: '+myTag));
+}
 
 async function addFriendByTag(){
   const raw=document.getElementById('tagSearchInput').value.trim().toUpperCase();
@@ -631,7 +641,11 @@ const fd=snap.docs[0].data();
     const fuid=snap.docs[0].id;
     if(friends.find(f=>f.uid===fuid)){errEl.textContent='Already friends!';return;}
 // Check if a pending request already exists
-    const existingQ=query(collection(db,'notifications'),\n      where('toUid','==',fuid),\n      where('fromUid','==',currentUser.uid),\n      where('type','==','friend_request'),\n      where('dismissed','==',false));
+    const existingQ=query(collection(db,'notifications'),
+      where('toUid','==',fuid),
+      where('fromUid','==',currentUser.uid),
+      where('type','==','friend_request'),
+      where('dismissed','==',false));
 const existingSnap=await getDocs(existingQ);
     if(!existingSnap.empty){errEl.textContent='Request already sent!';return;}
 // Send a friend request notification — don't add yet\n    await addDoc(collection(db,'notifications'),{
@@ -837,13 +851,18 @@ if(n===null)return; // cancelled
   try{
     await updateDoc(doc(db,'users',currentUser.uid,'friends',uid),{nickname:nick});
 renderFriends();renderSpeedSend();
-    showToast(nick?'Nickname set to "'+nick+'"':'Nickname cleared');\n  }catch(e){showToast('Could not save: '+e.message);}\n};
+    showToast(nick?'Nickname set to "'+nick+'"':'Nickname cleared');
+  }catch(e){showToast('Could not save: '+e.message);}
+};
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
 function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];let avHtml;
 if(f.isGroup){
-      avHtml='<div class="chip-avatar">GRP</div>';\n    }else if(f.avatar){
-      avHtml='<div class="chip-avatar" style="padding:0;overflow:hidden;"><img src="'+f.avatar+'" class="chip-avatar-img"><span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';\n    }else{
-      avHtml='<div class="chip-avatar">'+getInitials(name)+'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';\n    }
+      avHtml='<div class="chip-avatar">GRP</div>';
+    }else if(f.avatar){
+      avHtml='<div class="chip-avatar" style="padding:0;overflow:hidden;"><img src="'+f.avatar+'" class="chip-avatar-img"><span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';
+    }else{
+      avHtml='<div class="chip-avatar">'+getInitials(name)+'<span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';
+    }
     chip.innerHTML=avHtml+'<div class="chip-name">'+name+'</div>';chip.onclick=()=>{
 selectedTarget={...f};
   renderSpeedSend();updateSelectedLabel();
@@ -868,8 +887,10 @@ if(!ind||!txt)return;
     if(snap.exists()&&snap.data().recording&&snap.data().uid!==currentUser.uid){
       const name=snap.data().name||'Someone';
 txt.textContent='🎙 '+name+' is recording…';
-ind.classList.add('show');\n    }else{
-      ind.classList.remove('show');\n    }
+ind.classList.add('show');
+    }else{
+      ind.classList.remove('show');
+    }
   });
 }
 
@@ -884,8 +905,10 @@ if(!badge)return;
   }
   if(total>0){
     badge.textContent=total>99?'99+':total;
-badge.classList.add('show');\n  }else{
-    badge.classList.remove('show');\n  }
+badge.classList.add('show');
+  }else{
+    badge.classList.remove('show');
+  }
 }
 
 async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=msgCache[fuid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
@@ -905,7 +928,8 @@ const hrs=Math.floor(mins/60);
 const days=Math.floor(hrs/24);
   if(days===1)return'yesterday';
 if(days<7)return days+'d ago';
-return d.toLocaleDateString([],{month:'short',day:'numeric'});\n}
+return d.toLocaleDateString([],{month:'short',day:'numeric'});
+}
 
 function buildBubble(msg,idx){const div=document.createElement('div');const isOut=msg.senderUid===currentUser.uid;div.className='chat-bubble'+(msg.pinned?' pinned':'')+(isOut?'':' incoming');div.style.animationDelay=idx*40+'ms';if(msg.pinned){const pf=document.createElement('span');pf.className='pin-flag';pf.textContent='Pin';div.appendChild(pf);}const top=document.createElement('div');top.className='bubble-top';const ts=document.createElement('span');ts.className='bubble-ts';ts.textContent=msg.sentAt?timeAgo(msg.sentAt):(msg.timestamp||'');
 ts.title=msg.sentAt?.toDate?msg.sentAt.toDate().toLocaleString():'';const badge=document.createElement('span');badge.className='bubble-type';badge.textContent='Voice';const dir=document.createElement('span');dir.className='bubble-dir '+(isOut?'out':'in');dir.textContent=isOut?'You':(selectedTarget?.isGroup?(msg.senderName||'Someone'):(selectedTarget?.nickname||selectedTarget?.name||''));top.appendChild(ts);top.appendChild(badge);top.appendChild(dir);div.appendChild(top);const slot=document.createElement('div');slot.className='media-loading';slot.innerHTML='<span class="spin"></span> Loading...';div.appendChild(slot);if(msg.audioBase64){
@@ -918,13 +942,15 @@ wrapper.appendChild(a);
 canvas.className='waveform-canvas';canvas.height=36;
 wrapper.appendChild(canvas);
     // Speed controls
-    const speeds=document.createElement('div');speeds.className='speed-btns';\n    [1,1.5,2].forEach(spd=>{
+    const speeds=document.createElement('div');speeds.className='speed-btns';
+    [1,1.5,2].forEach(spd=>{
       const btn=document.createElement('button');btn.className='speed-btn'+(spd===1?' active':'');
 btn.textContent=spd+'x';
 btn.onclick=(e)=>{
         e.stopPropagation();a.playbackRate=spd;
         speeds.querySelectorAll('.speed-btn').forEach(b=>b.classList.remove('active'));
-btn.classList.add('active');\n      };
+btn.classList.add('active');
+      };
       speeds.appendChild(btn);
     });
     wrapper.appendChild(speeds);
@@ -942,7 +968,8 @@ a.addEventListener('play',()=>{
 if(!isOut){
         if(!msg.listenedBy?.includes(currentUser.uid)&&msg.firestoreId&&selectedTarget){
           const cid=selectedTarget.isGroup?groupConvId(selectedTarget.uid):convId(currentUser.uid,selectedTarget.uid);
-          updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),\n            {listenedBy:[...(msg.listenedBy||[]),currentUser.uid]}).catch(()=>{});
+          updateDoc(doc(db,'conversations',cid,'messages',msg.firestoreId),
+            {listenedBy:[...(msg.listenedBy||[]),currentUser.uid]}).catch(()=>{});
         }
       }
     });
@@ -982,7 +1009,12 @@ empty.classList.add('hidden');
 groups.forEach((g,i)=>{
     const names=(g.memberNames||g.members||[]).join(', ');
 const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'mm';
-div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">👥 '+g.name+'</span><small style="opacity:.5;font-size:11px;">'+names+'</small></span>'\n      +'<div class="item-actions">'\n      +'<button class="action-btn rename" onclick="window._inviteToGroup('+i+')" title="Invite a friend">Invite</button>'\n      +'<button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button>'\n      +'<button class="action-btn remove" onclick="window._leaveGroup('+i+')">Leave</button>'\n      +'</div>';
+div.innerHTML='<span style="display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">👥 '+g.name+'</span><small style="opacity:.5;font-size:11px;">'+names+'</small></span>'
+      +'<div class="item-actions">'
+      +'<button class="action-btn rename" onclick="window._inviteToGroup('+i+')" title="Invite a friend">Invite</button>'
+      +'<button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button>'
+      +'<button class="action-btn remove" onclick="window._leaveGroup('+i+')">Leave</button>'
+      +'</div>';
 list.appendChild(div);
   });
 }
@@ -1004,10 +1036,12 @@ saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();
     try{
       await addDoc(collection(db,'notifications'),{
 toUid:uid,fromUid:currentUser.uid,fromName:myName,
-        type:'group_invite',groupName:name,groupId,\n        members:allMembers,memberNames,
+        type:'group_invite',groupName:name,groupId,
+        members:allMembers,memberNames,
         sentAt:serverTimestamp(),read:false,dismissed:false
       });
-    }catch(e){console.warn('Group invite push failed:',e);}\n  }
+    }catch(e){console.warn('Group invite push failed:',e);}
+  }
   showToast('Group created — invites sent!');}
 window._rnG=i=>{const n=prompt('Rename:',groups[i].name);if(!n)return;groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();};
 // Leave group — removes from local list, notifies all members
@@ -1020,14 +1054,17 @@ window._leaveGroup=async function(i){
     try{
       await addDoc(collection(db,'notifications'),{
 toUid:uid,fromUid:currentUser.uid,fromName:myName,
-        type:'group_left',groupName:g.name,groupId:g.groupId||g.name,\n        sentAt:serverTimestamp(),dismissed:false
+        type:'group_left',groupName:g.name,groupId:g.groupId||g.name,
+        sentAt:serverTimestamp(),dismissed:false
       });
-    }catch(e){console.warn('Leave notify failed:',e);}\n  }
+    }catch(e){console.warn('Leave notify failed:',e);}
+  }
   // Remove locally
   groups.splice(i,1);
   saveGroups();renderGroups();renderSpeedSend();
   if(selectedTarget&&selectedTarget.uid==='grp_'+g.name){selectedTarget=null;renderChat();}
-showToast('You left "'+g.name+'"');\n};
+showToast('You left "'+g.name+'"');
+};
 
 // Invite a friend to an existing group
 window._inviteToGroup=function(i){
@@ -1049,10 +1086,13 @@ window._sendGroupInvite=async function(g,friend){
   try{
     await addDoc(collection(db,'notifications'),{
 toUid:friend.uid,fromUid:currentUser.uid,fromName:myName,
-      type:'group_invite',groupName:g.name,groupId:g.groupId||g.name,\n      members:g.members||[],memberNames:g.memberNames||[],
+      type:'group_invite',groupName:g.name,groupId:g.groupId||g.name,
+      members:g.members||[],memberNames:g.memberNames||[],
       sentAt:serverTimestamp(),read:false,dismissed:false
     });
-    showToast('📨 Invite sent to '+(friend.nickname||friend.name));\n  }catch(e){showToast('Failed to send invite: '+e.message);}\n};
+    showToast('📨 Invite sent to '+(friend.nickname||friend.name));
+  }catch(e){showToast('Failed to send invite: '+e.message);}
+};
 function showPage(id,btn){
   document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
 document.getElementById(id).classList.add('active');
@@ -1060,7 +1100,8 @@ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
 btn.classList.add('active');
 // Clear nav dot when opening notifications
   if(id==='notifPage'){
-const nd=document.getElementById('notifNavDot');if(nd)nd.style.display='none';\n  }
+const nd=document.getElementById('notifNavDot');if(nd)nd.style.display='none';
+  }
   if(id==='homePage'){
 // Badge clears naturally as messages get marked read
     updateHomeNavBadge();
@@ -1117,7 +1158,8 @@ window._setupRecaptcha = function(authInstance, signInFn){
   if(window._recaptchaVerifier) return;
   try{
     window._recaptchaVerifier = new RecaptchaVerifier(authInstance,'recaptcha-container',{
-size:'normal',\n      callback: async()=>{
+size:'normal',
+      callback: async()=>{
         const raw=document.getElementById('phoneInput').value.trim();
 const errEl=document.getElementById('authError1');
 const btn=document.getElementById('sendCodeBtn');
@@ -1132,12 +1174,14 @@ try{
           document.getElementById('otpDesc').textContent='Code sent to '+phone;
 document.getElementById('authStep1').classList.remove('active');
 document.getElementById('authStep2').classList.add('active');
-setTimeout(()=>document.getElementById('otp0').focus(),200);\n        }catch(e){
+setTimeout(()=>document.getElementById('otp0').focus(),200);
+        }catch(e){
           console.error(e);
           errEl.textContent=e.message||'Failed to send. Check your number.';
 try{window._recaptchaVerifier.clear();}catch(_){}
           window._recaptchaVerifier=null;recaptchaVerifier=null;
-        }finally{btn.disabled=false;btn.textContent='Send Code';}\n      },
+        }finally{btn.disabled=false;btn.textContent='Send Code';}
+      },
       'expired-callback':()=>{
 if(window.showToast)showToast('Check expired — please try again');
 window._recaptchaVerifier=null;recaptchaVerifier=null;
@@ -1145,7 +1189,10 @@ window._recaptchaVerifier=null;recaptchaVerifier=null;
     });
     window._recaptchaVerifier.render().then(()=>{
       recaptchaVerifier=window._recaptchaVerifier;
-      console.log('reCAPTCHA ready');\n    }).catch(e=>console.warn('reCAPTCHA render:',e));\n  }catch(e){console.warn('reCAPTCHA init:',e);}\n};
+      console.log('reCAPTCHA ready');
+    }).catch(e=>console.warn('reCAPTCHA render:',e));
+  }catch(e){console.warn('reCAPTCHA init:',e);}
+};
 // Call it now — auth and signInWithPhoneNumber are in scope here
 window._setupRecaptcha(auth, signInWithPhoneNumber);
 window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.removeAvatar=removeAvatar;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
