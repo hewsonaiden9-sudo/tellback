@@ -243,6 +243,50 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
 .grp-check-item{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;cursor:pointer;border-bottom:1px solid var(--border);}
 .grp-check-item:last-child{border-bottom:none;}
 .grp-check-item input{accent-color:var(--primary);width:16px;height:16px;}
+/* group panel */
+.group-card{background:var(--card);border-radius:16px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(30,40,80,.08);}
+.group-card-header{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;user-select:none;}
+.group-card-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--primary);}
+.group-card-avatar.initials{background:radial-gradient(circle at 40% 35%,#7ab0ff,#2563eb);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:#fff;}
+.group-card-info{flex:1;min-width:0;}
+.group-card-name{font-weight:700;font-size:15px;font-family:'Syne',sans-serif;display:flex;align-items:center;gap:6px;}
+.group-card-meta{font-size:11px;color:var(--sub);margin-top:2px;}
+.admin-badge{font-size:9px;background:var(--primary);color:white;border-radius:4px;padding:2px 6px;font-family:'Syne',sans-serif;font-weight:700;}
+.coadmin-badge{font-size:9px;background:#f59e0b;color:white;border-radius:4px;padding:2px 6px;font-family:'Syne',sans-serif;font-weight:700;}
+.group-card-actions{display:flex;gap:6px;padding:0 14px 14px;flex-wrap:wrap;}
+.group-card-body{border-top:1px solid var(--border);display:none;}
+.group-card-body.open{display:block;}
+/* system message bubble */
+.sys-bubble{text-align:center;font-size:11px;color:var(--sub);font-family:'Syne',sans-serif;padding:4px 12px;margin:4px auto;background:var(--primary-soft);border-radius:10px;max-width:80%;font-style:italic;}
+/* member list */
+.member-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.member-item:last-child{border-bottom:none;}
+.member-item:hover{background:rgba(0,0,0,.04);}
+body.dark .member-item:hover{background:rgba(255,255,255,.05);}
+.member-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.member-avatar.initials{background:radial-gradient(circle at 40% 35%,#7ab0ff,#2563eb);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;}
+.member-info{flex:1;min-width:0;}
+.member-name{font-weight:600;font-size:13px;}
+.member-role{font-size:10px;color:var(--sub);}
+/* app dropdown */
+.app-dropdown{position:fixed;inset:0;z-index:250;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);}
+.app-dropdown-sheet{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:540px;max-height:70vh;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));}
+.app-dropdown-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:14px auto 10px;}
+.app-dropdown-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;padding:0 20px 12px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.app-dropdown-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:background .15s;font-size:14px;}
+.app-dropdown-item:hover{background:var(--primary-soft);}
+.app-dropdown-item .dd-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+.app-dropdown-item .dd-avatar.ini{background:radial-gradient(circle at 40% 35%,#7ab0ff,#2563eb);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;}
+/* profile modal */
+.profile-modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
+.profile-modal.open{display:flex;}
+.profile-card{background:var(--card);border-radius:24px;width:90%;max-width:360px;padding:28px 24px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.4);}
+.profile-card-avatar{width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid var(--primary);}
+.profile-card-avatar.ini{background:radial-gradient(circle at 40% 35%,#7ab0ff,#2563eb);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;font-family:'Syne',sans-serif;margin:0 auto 12px;}
+.profile-card-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
+.profile-card-tag{font-size:12px;color:var(--primary);font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px;}
+.profile-card-status{font-size:12px;color:var(--sub);margin-bottom:4px;font-style:italic;}
+.profile-card-close{margin-top:18px;width:100%;}
 @keyframes pageIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 @keyframes cardIn{from{opacity:0;transform:translateY(8px) scale(.99);}to{opacity:1;transform:translateY(0) scale(1);}}
 @keyframes itemIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
@@ -358,9 +402,16 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
   <button class="app-button" onclick="toggleCreateGroup()">Create Group</button>
   <div class="card hidden" id="createGroupPanel" style="margin-top:10px;">
     <div class="card-title">New Group</div>
+    <input id="groupNameInput" type="text" placeholder="Group name" style="margin-bottom:10px;">
+    <div class="card-title" style="margin-top:8px;">Members</div>
     <div id="groupFriendCheckboxes"></div>
-    <input id="groupNameInput" type="text" placeholder="Group name">
-    <button class="app-button" onclick="createGroup()">Save Group</button>
+    <div style="margin-top:10px;">
+      <div class="setting-label" style="font-size:12px;margin-bottom:6px;">Co-Admin (optional)</div>
+      <select id="groupCoAdminSelect" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+        <option value="">None</option>
+      </select>
+    </div>
+    <button class="app-button" onclick="createGroup()" style="margin-top:12px;">Save Group</button>
   </div>
 </div>
 <div class="container subpage" id="settingsPage">
@@ -479,6 +530,31 @@ body.dark .status-text-input::placeholder{color:#6e6c82;}
     </div>
   </div>
 </div><!-- end addFriendModal -->
+
+<!-- APP DROPDOWN -->
+<div class="app-dropdown" id="appDropdown" style="display:none;" onclick="if(event.target===this)closeDropdown()">
+  <div class="app-dropdown-sheet">
+    <div class="app-dropdown-handle"></div>
+    <div class="app-dropdown-title" id="dropdownTitle">Select</div>
+    <div id="dropdownList"></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="profile-modal" id="profileModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="profile-card">
+    <div id="profileAvatarWrap"></div>
+    <div class="profile-card-name" id="profileName"></div>
+    <div class="profile-card-tag" id="profileTag"></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:6px;">
+      <span id="profileStatusDot" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:#22c55e;"></span>
+      <span id="profileStatusLabel" style="font-size:12px;color:var(--sub);font-family:'Syne',sans-serif;font-weight:600;"></span>
+    </div>
+    <div class="profile-card-status" id="profileCustomStatus"></div>
+    <button class="app-button secondary profile-card-close" onclick="document.getElementById('profileModal').classList.remove('open')">Close</button>
+  </div>
+</div>
+
 </div><!-- end appRoot -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -920,6 +996,8 @@ function renderNotifPanel(notifs){
         const allMembers=n.members||[];
         for(const uid of allMembers){if(uid===currentUser.uid)continue;try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'group_joined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}}
         await updateDoc(doc(db,'notifications',n.id),{dismissed:true}).catch(()=>{});
+        // System message
+        try{const cid=groupConvId('grp_'+n.groupName);await addDoc(collection(db,'conversations',cid,'messages'),{senderUid:'system',senderName:'TellBack',type:'system',text:myName+' joined '+n.groupName,sentAt:serverTimestamp(),pinned:false,readBy:[]});}catch(e){}
         showToast('Joined "'+n.groupName+'"');
       };
       const rej=document.createElement('button');rej.className='notif-btn reject';rej.textContent='Decline';
@@ -1069,7 +1147,30 @@ badge.classList.add('show');
 
 async function markRead(fuid){const cid=convId(currentUser.uid,fuid);const msgs=msgCache[fuid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
 async function markGroupRead(gUid){const cid=groupConvId(gUid);const msgs=msgCache[gUid]||[];for(const m of msgs.filter(m=>m.senderUid!==currentUser.uid&&!m.readBy?.includes(currentUser.uid)))await updateDoc(doc(db,'conversations',cid,'messages',m.firestoreId),{readBy:[...(m.readBy||[]),currentUser.uid]}).catch(()=>{});}
-function renderChat(){const history=document.getElementById('chatHistory');const title=document.getElementById('voiceChatTitle');history.innerHTML='';if(!selectedTarget){title.innerText='Voice Messages';history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';return;}title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);const msgs=msgCache[selectedTarget.uid]||[];if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}const sorted=[...msgs].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));sorted.forEach((msg,idx)=>history.appendChild(buildBubble(msg,idx)));if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);else markRead(selectedTarget.uid);setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);}
+function renderChat(){
+  const history=document.getElementById('chatHistory');
+  const title=document.getElementById('voiceChatTitle');
+  history.innerHTML='';
+  if(!selectedTarget){
+    title.innerText='Voice Messages';
+    history.innerHTML='<div class="empty"><div class="emoji">&#128172;</div>Select someone above</div>';
+    return;
+  }
+  title.innerText=(selectedTarget.isGroup?'Group: ':'')+(selectedTarget.nickname||selectedTarget.name);
+  const msgs=msgCache[selectedTarget.uid]||[];
+  if(!msgs.length){history.innerHTML='<div class="empty"><div class="emoji">&#127897;</div>Hold the button to record your first message!</div>';return;}
+  // Sort: pinned first, then chronological
+  const pinned=msgs.filter(m=>m.pinned).sort((a,b)=>{const ta=a.sentAt?.toDate?a.sentAt.toDate().getTime():0;const tb=b.sentAt?.toDate?b.sentAt.toDate().getTime():0;return ta-tb;});
+  const rest=msgs.filter(m=>!m.pinned).sort((a,b)=>{const ta=a.sentAt?.toDate?a.sentAt.toDate().getTime():0;const tb=b.sentAt?.toDate?b.sentAt.toDate().getTime():0;return ta-tb;});
+  [...pinned,...rest].forEach((msg,idx)=>{
+    if(msg.type==='system'){
+      const sb=document.createElement('div');sb.className='sys-bubble';sb.textContent=msg.text||'';history.appendChild(sb);
+    }else{history.appendChild(buildBubble(msg,idx));}
+  });
+  if(selectedTarget.isGroup)markGroupRead(selectedTarget.uid);
+  else markRead(selectedTarget.uid);
+  setTimeout(()=>{history.scrollTop=history.scrollHeight;},50);
+}
 function timeAgo(date){
   if(!date)return'';
 const now=Date.now();
@@ -1171,32 +1272,101 @@ function saveGroups(){
 }
 function renderGroups(){
   const list=document.getElementById('groupsList'),empty=document.getElementById('groupsEmpty');
-if(!list)return;list.innerHTML='';
-if(!groups.length){empty.classList.remove('hidden');return;}
-empty.classList.add('hidden');
-groups.forEach((g,i)=>{
-    const names=(g.memberNames||g.members||[]).join(', ');
-const div=document.createElement('div');div.className='item';div.style.animationDelay=i*35+'mm';
-const isAdmin=g.adminUid===currentUser.uid;
-    const avatarHtml=g.avatar?'<img src="'+g.avatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);margin-right:8px;" />'
-      :'<span style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#7ab0ff,#2563eb);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;margin-right:8px;flex-shrink:0;">GRP</span>';
-    div.innerHTML='<span style="display:flex;align-items:center;">'
-      +avatarHtml
-      +'<span style="display:flex;flex-direction:column;gap:2px;"><span style="font-weight:600;">'+g.name
-      +(isAdmin?'<span style="font-size:9px;background:var(--primary);color:white;border-radius:4px;padding:1px 5px;margin-left:6px;font-family:Syne,sans-serif;">ADMIN</span>':'')
-      +'</span><small style="opacity:.5;font-size:11px;">'+names+'</small></span></span>'
-      +'<div class="item-actions" style="flex-wrap:wrap;gap:4px;">'
-      +(isAdmin?'<button class="action-btn rename" onclick="window._groupPhoto('+i+')" title="Change group photo">📷</button>':'')
-      +(isAdmin?'<button class="action-btn rename" onclick="window._rnG('+i+')">Rename</button>':'')
-      +'<button class="action-btn rename" onclick="window._inviteToGroup('+i+')" title="Invite">Invite</button>'
-      +(isAdmin?'<button class="action-btn rename" onclick="window._promoteAdmin('+i+')" title="Promote member">Promote</button>':'')
-      +'<button class="action-btn remove" onclick="window._leaveGroup('+i+')">Leave</button>'
-      +'</div>';
-list.appendChild(div);
+  if(!list)return;list.innerHTML='';
+  if(!groups.length){empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+  groups.forEach((g,i)=>{
+    const isAdmin=g.adminUid===currentUser.uid;
+    const isCoAdmin=g.coAdminUid===currentUser.uid;
+    const canManage=isAdmin||isCoAdmin;
+    const memberCount=(g.members||[]).length;
+
+    const card=document.createElement('div');
+    card.className='group-card';
+    card.style.animationDelay=i*40+'ms';
+
+    // Header
+    const header=document.createElement('div');
+    header.className='group-card-header';
+    const av=document.createElement('div');
+    av.className='group-card-avatar initials';
+    if(g.avatar){
+      const img=document.createElement('img');img.src=g.avatar;img.className='group-card-avatar';
+      header.appendChild(img);
+    }else{av.textContent='GRP';header.appendChild(av);}
+
+    const info=document.createElement('div');info.className='group-card-info';
+    const nameRow=document.createElement('div');nameRow.className='group-card-name';
+    nameRow.textContent=g.name;
+    if(isAdmin){const b=document.createElement('span');b.className='admin-badge';b.textContent='ADMIN';nameRow.appendChild(b);}
+    else if(isCoAdmin){const b=document.createElement('span');b.className='coadmin-badge';b.textContent='CO-ADMIN';nameRow.appendChild(b);}
+    const meta=document.createElement('div');meta.className='group-card-meta';
+    meta.textContent=memberCount+' member'+(memberCount!==1?'s':'');
+    info.appendChild(nameRow);info.appendChild(meta);
+    header.appendChild(info);
+
+    // Chevron
+    const chev=document.createElement('span');chev.textContent='›';chev.style.cssText='font-size:20px;color:var(--sub);transition:transform .2s;margin-left:4px;';
+    header.appendChild(chev);
+
+    // Body (members + actions)
+    const body=document.createElement('div');body.className='group-card-body';
+
+    // Member list
+    const memberSection=document.createElement('div');
+    (g.members||[]).forEach(uid=>{
+      const f=uid===currentUser.uid?{name:myName,avatar:myAvatar,uid:currentUser.uid}:friends.find(x=>x.uid===uid);
+      const name=f?(f.nickname||f.name):uid;
+      const mi=document.createElement('div');mi.className='member-item';
+      const mav=document.createElement('div');mav.className='member-avatar initials';
+      if(f&&f.avatar){const img=document.createElement('img');img.src=f.avatar;img.className='member-avatar';mi.appendChild(img);}
+      else{mav.textContent=getInitials(name);mi.appendChild(mav);}
+      const minf=document.createElement('div');minf.className='member-info';
+      const mname=document.createElement('div');mname.className='member-name';mname.textContent=name+(uid===currentUser.uid?' (you)':'');
+      const mrole=document.createElement('div');mrole.className='member-role';
+      mrole.textContent=uid===g.adminUid?'Admin':uid===g.coAdminUid?'Co-Admin':'Member';
+      minf.appendChild(mname);minf.appendChild(mrole);mi.appendChild(minf);
+      // Click member to view profile
+      mi.onclick=()=>showMemberProfile(uid,g);
+      memberSection.appendChild(mi);
+    });
+    body.appendChild(memberSection);
+
+    // Actions row
+    const acts=document.createElement('div');acts.className='group-card-actions';
+    const mkBtn=(label,cls,fn)=>{const b=document.createElement('button');b.className='action-btn '+cls;b.textContent=label;b.onclick=fn;return b;};
+    if(canManage) acts.appendChild(mkBtn('📷 Photo','rename',()=>window._groupPhoto(i)));
+    if(isAdmin) acts.appendChild(mkBtn('Rename','rename',()=>window._rnG(i)));
+    acts.appendChild(mkBtn('Invite','rename',()=>window._inviteToGroup(i)));
+    if(isAdmin) acts.appendChild(mkBtn('Promote','rename',()=>window._promoteAdmin(i)));
+    if(isAdmin) acts.appendChild(mkBtn('Co-Admin','rename',()=>window._setCoAdmin(i)));
+    if(canManage) acts.appendChild(mkBtn('Remove Member','rename',()=>window._removeMember(i)));
+    acts.appendChild(mkBtn('Leave','remove',()=>window._leaveGroup(i)));
+    body.appendChild(acts);
+
+    // Toggle expand
+    header.onclick=()=>{
+      const open=body.classList.toggle('open');
+      chev.style.transform=open?'rotate(90deg)':'rotate(0deg)';
+    };
+
+    card.appendChild(header);card.appendChild(body);
+    list.appendChild(card);
   });
 }
 function toggleCreateGroup(){document.getElementById('createGroupPanel').classList.toggle('hidden');renderGroupCheckboxes();}
-function renderGroupCheckboxes(){const c=document.getElementById('groupFriendCheckboxes');if(!c)return;c.innerHTML='';friends.forEach(f=>{const l=document.createElement('label');l.className='grp-check-item';l.innerHTML='<input type="checkbox" value="'+f.uid+'"> '+(f.nickname||f.name);c.appendChild(l);});}
+function renderGroupCheckboxes(){
+  const c=document.getElementById('groupFriendCheckboxes');
+  const sel=document.getElementById('groupCoAdminSelect');
+  if(!c)return;c.innerHTML='';
+  if(sel){sel.innerHTML='<option value="">None</option>';}
+  friends.forEach(f=>{
+    const l=document.createElement('label');l.className='grp-check-item';
+    l.innerHTML='<input type="checkbox" value="'+f.uid+'"> '+(f.nickname||f.name);
+    c.appendChild(l);
+    if(sel){const o=document.createElement('option');o.value=f.uid;o.textContent=f.nickname||f.name;sel.appendChild(o);}
+  });
+}
 async function createGroup(){
   const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
   const name=document.getElementById('groupNameInput').value.trim();
@@ -1205,7 +1375,8 @@ async function createGroup(){
   const allMembers=[...new Set([currentUser.uid,...sel])];
   const allMemberNames=[myName,...memberNames];
   const groupId='grp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  groups.push({name,members:allMembers,memberNames:allMemberNames,groupId,adminUid:currentUser.uid,avatar:''});
+  const coAdminUid=document.getElementById('groupCoAdminSelect')?.value||'';
+  groups.push({name,members:allMembers,memberNames:allMemberNames,groupId,adminUid:currentUser.uid,coAdminUid,avatar:''});
   document.getElementById('groupNameInput').value='';
   saveGroups();renderGroups();renderSpeedSend();toggleCreateGroup();
   // Send group invite notifications to each selected member via Firestore
@@ -1219,11 +1390,19 @@ toUid:uid,fromUid:currentUser.uid,fromName:myName,
       });
     }catch(e){console.warn('Group invite push failed:',e);}
   }
+  // System message: group created
+  try{
+    const cid=groupConvId('grp_'+name);
+    await addDoc(collection(db,'conversations',cid,'messages'),{
+      senderUid:'system',senderName:'TellBack',type:'system',
+      text:myName+' created the group '+name,sentAt:serverTimestamp(),pinned:false,readBy:[]
+    });
+  }catch(e){}
   showToast('Group created — invites sent!');}
 window._rnG=i=>{
   if(groups[i].adminUid&&groups[i].adminUid!==currentUser.uid){showToast('Only the group admin can rename');return;}
-  const n=prompt('Rename:',groups[i].name);if(!n)return;
-  groups[i].name=n;saveGroups();renderGroups();renderSpeedSend();
+  const n=prompt('Rename group:',groups[i].name);if(!n||!n.trim())return;
+  groups[i].name=n.trim();saveGroups();renderGroups();renderSpeedSend();
 };
 window._groupPhoto=function(i){
   const input=document.createElement('input');input.type='file';input.accept='image/*';
@@ -1250,18 +1429,60 @@ window._promoteAdmin=function(i){
   const g=groups[i];
   const eligible=g.members.filter(uid=>uid!==currentUser.uid);
   if(!eligible.length){showToast('No other members to promote');return;}
-  const names=eligible.map((uid,idx)=>{
+  showDropdown('Promote to Admin',eligible.map(uid=>{
     const f=friends.find(x=>x.uid===uid);
-    return (idx+1)+'. '+(f?f.nickname||f.name:uid);
-  }).join('\n');
-  const choice=prompt('Promote to admin:\n\n'+names+'\n\nEnter number:');
-  if(!choice)return;
-  const idx=parseInt(choice)-1;
-  if(isNaN(idx)||idx<0||idx>=eligible.length){showToast('Invalid selection');return;}
-  g.adminUid=eligible[idx];
-  saveGroups();renderGroups();
-  const fname=friends.find(x=>x.uid===eligible[idx]);
-  showToast((fname?fname.nickname||fname.name:eligible[idx])+' is now admin');
+    return {label:(f?f.nickname||f.name:uid),sub:'Will become group admin',avatar:f?.avatar||'',uid};
+  }),(uid)=>{
+    g.adminUid=uid;saveGroups();renderGroups();
+    const f=friends.find(x=>x.uid===uid);
+    showToast((f?f.nickname||f.name:uid)+' is now admin');
+  });
+};
+
+window._setCoAdmin=function(i){
+  const g=groups[i];
+  const eligible=g.members.filter(uid=>uid!==currentUser.uid&&uid!==g.adminUid);
+  if(!eligible.length){showToast('No members to assign');return;}
+  const items=[{label:'None (remove co-admin)',sub:'',avatar:'',uid:''},...eligible.map(uid=>{
+    const f=friends.find(x=>x.uid===uid);
+    return {label:(f?f.nickname||f.name:uid),sub:'Will become co-admin',avatar:f?.avatar||'',uid};
+  })];
+  showDropdown('Set Co-Admin',items,(uid)=>{
+    g.coAdminUid=uid;saveGroups();renderGroups();
+    if(uid){const f=friends.find(x=>x.uid===uid);showToast((f?f.nickname||f.name:uid)+' is now co-admin');}
+    else showToast('Co-admin removed');
+  });
+};
+
+window._removeMember=function(i){
+  const g=groups[i];
+  const eligible=g.members.filter(uid=>uid!==currentUser.uid&&uid!==g.adminUid);
+  if(!eligible.length){showToast('No members to remove');return;}
+  showDropdown('Remove Member',eligible.map(uid=>{
+    const f=friends.find(x=>x.uid===uid);
+    return {label:(f?f.nickname||f.name:uid),sub:'Will be removed from group',avatar:f?.avatar||'',uid};
+  }),async(uid)=>{
+    g.members=g.members.filter(m=>m!==uid);
+    const f=friends.find(x=>x.uid===uid);
+    const fname=f?f.nickname||f.name:uid;
+    g.memberNames=(g.memberNames||[]).filter(n=>n!==fname);
+    if(g.coAdminUid===uid)g.coAdminUid='';
+    saveGroups();renderGroups();renderSpeedSend();
+    // Send system message + notify
+    try{
+      const cid=groupConvId('grp_'+g.name);
+      await addDoc(collection(db,'conversations',cid,'messages'),{
+        senderUid:'system',senderName:'TellBack',type:'system',
+        text:fname+' was removed from '+g.name,
+        sentAt:serverTimestamp(),pinned:false,readBy:[]
+      });
+      await addDoc(collection(db,'notifications'),{
+        toUid:uid,fromUid:currentUser.uid,fromName:myName,
+        type:'group_removed',groupName:g.name,sentAt:serverTimestamp(),dismissed:false
+      });
+    }catch(e){}
+    showToast(fname+' removed from group');
+  });
 };
 // Leave group — removes from local list, notifies all members
 window._leaveGroup=async function(i){
@@ -1278,29 +1499,32 @@ toUid:uid,fromUid:currentUser.uid,fromName:myName,
       });
     }catch(e){console.warn('Leave notify failed:',e);}
   }
-  // Remove locally
+  // System message
+  try{
+    const cid=groupConvId('grp_'+g.name);
+    await addDoc(collection(db,'conversations',cid,'messages'),{
+      senderUid:'system',senderName:'TellBack',type:'system',
+      text:myName+' left '+g.name,sentAt:serverTimestamp(),pinned:false,readBy:[]
+    });
+  }catch(e){}
   groups.splice(i,1);
   saveGroups();renderGroups();renderSpeedSend();
   if(selectedTarget&&selectedTarget.uid==='grp_'+g.name){selectedTarget=null;renderChat();}
-showToast('You left "'+g.name+'"');
+  showToast('You left "'+g.name+'"');
 };
 
 // Invite a friend to an existing group
 window._inviteToGroup=function(i){
   const g=groups[i];
-  // Show a modal-style dropdown of friends not already in the group
   const eligible=friends.filter(f=>!f.pending&&!(g.members||[]).includes(f.uid));
   if(!eligible.length){showToast('No friends to invite — they may already be in this group');return;}
-// Build a simple select prompt
-  const names=eligible.map((f,idx)=>(idx+1)+'. '+(f.nickname||f.name)).join('\n');
-const choice=prompt('Invite to "'+g.name+'":\n\n'+names+'\n\nEnter number:');
-if(!choice)return;
-  const idx=parseInt(choice)-1;
-  if(isNaN(idx)||idx<0||idx>=eligible.length){showToast('Invalid selection');return;}
-const friend=eligible[idx];
-  window._sendGroupInvite(g,friend);
-};
-
+  showDropdown('Invite to "'+g.name+'"',eligible.map(f=>({
+    label:f.nickname||f.name,sub:f.phone||'',avatar:f.avatar||'',uid:f.uid
+  })),(uid)=>{
+    const friend=eligible.find(f=>f.uid===uid);
+    if(friend)window._sendGroupInvite(g,friend);
+  });
+}
 window._sendGroupInvite=async function(g,friend){
   try{
     await addDoc(collection(db,'notifications'),{
@@ -1312,6 +1536,75 @@ toUid:friend.uid,fromUid:currentUser.uid,fromName:myName,
     showToast('📨 Invite sent to '+(friend.nickname||friend.name));
   }catch(e){showToast('Failed to send invite: '+e.message);}
 };
+/* ── DROPDOWN ── */
+function showDropdown(title, items, onSelect){
+  const el=document.getElementById('appDropdown');
+  const list=document.getElementById('dropdownList');
+  const tEl=document.getElementById('dropdownTitle');
+  if(!el||!list||!tEl)return;
+  tEl.textContent=title;
+  list.innerHTML='';
+  items.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='app-dropdown-item';
+    const av=document.createElement('div');
+    av.className='dd-avatar ini';
+    if(item.avatar){const img=document.createElement('img');img.src=item.avatar;img.className='dd-avatar';div.appendChild(img);}
+    else{av.textContent=item.uid?getInitials(item.label):'—';div.appendChild(av);}
+    const info=document.createElement('div');
+    const name=document.createElement('div');name.style.fontWeight='600';name.textContent=item.label;
+    info.appendChild(name);
+    if(item.sub){const sub=document.createElement('div');sub.style.cssText='font-size:11px;color:var(--sub);';sub.textContent=item.sub;info.appendChild(sub);}
+    div.appendChild(info);
+    div.onclick=()=>{closeDropdown();onSelect(item.uid);};
+    list.appendChild(div);
+  });
+  el.style.display='flex';
+}
+function closeDropdown(){
+  const el=document.getElementById('appDropdown');
+  if(el)el.style.display='none';
+}
+
+/* ── MEMBER PROFILE ── */
+async function showMemberProfile(uid,group){
+  const modal=document.getElementById('profileModal');
+  if(!modal)return;
+  const nameEl=document.getElementById('profileName');
+  const tagEl=document.getElementById('profileTag');
+  const statusDot=document.getElementById('profileStatusDot');
+  const statusLabel=document.getElementById('profileStatusLabel');
+  const customEl=document.getElementById('profileCustomStatus');
+  const avatarWrap=document.getElementById('profileAvatarWrap');
+  // Set from local data first
+  const f=uid===currentUser.uid?null:friends.find(x=>x.uid===uid);
+  const name=uid===currentUser.uid?myName:(f?f.nickname||f.name:uid);
+  nameEl.textContent=name;
+  avatarWrap.innerHTML='';
+  const avSrc=uid===currentUser.uid?myAvatar:(f?.avatar||'');
+  if(avSrc){const img=document.createElement('img');img.src=avSrc;img.className='profile-card-avatar';avatarWrap.appendChild(img);}
+  else{const div=document.createElement('div');div.className='profile-card-avatar ini';div.textContent=getInitials(name);avatarWrap.appendChild(div);}
+  const statusColors={'online':'#22c55e','away':'#f59e0b','busy':'#ef4444','offline':'#94a3b8'};
+  // Load fresh from Firestore
+  try{
+    const snap=await getDoc(doc(db,'users',uid));
+    if(snap.exists()){
+      const d=snap.data();
+      tagEl.textContent=d.tag?'🏷 '+d.tag:'No tag';
+      const st=d.status||'offline';
+      statusDot.style.background=statusColors[st]||'#94a3b8';
+      statusLabel.textContent=st.charAt(0).toUpperCase()+st.slice(1);
+      customEl.textContent=d.customStatus||'';
+      customEl.style.display=d.customStatus?'block':'none';
+      if(d.avatar&&d.avatar!==avSrc){
+        avatarWrap.innerHTML='';
+        const img=document.createElement('img');img.src=d.avatar;img.className='profile-card-avatar';avatarWrap.appendChild(img);
+      }
+    }
+  }catch(e){}
+  modal.classList.add('open');
+}
+
 function showPage(id,btn){
   document.querySelectorAll('.subpage').forEach(p=>p.classList.remove('active'));
 document.getElementById(id).classList.add('active');
@@ -1414,7 +1707,7 @@ window._recaptchaVerifier=null;recaptchaVerifier=null;
 };
 // Call it now — auth and signInWithPhoneNumber are in scope here
 window._setupRecaptcha(auth, signInWithPhoneNumber);
-window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.removeAvatar=removeAvatar;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;
+window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.removeAvatar=removeAvatar;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;window.closeDropdown=closeDropdown;window.showMemberProfile=showMemberProfile;
 </script>
 </body>
 </html>
