@@ -572,7 +572,7 @@ body.dark .member-item:hover{background:rgba(255,255,255,.05);}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, updateDoc, deleteDoc, getDocs, arrayRemove, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 const firebaseConfig={apiKey:"AIzaSyAgndibpL0kRx4OVABNocI5Bv1qff1qYcI",authDomain:"tellback-68a28.firebaseapp.com",projectId:"tellback-68a28",storageBucket:"tellback-68a28.firebasestorage.app",messagingSenderId:"847309476601",appId:"1:847309476601:web:e2ce35491762b7012b4828"};
 const fbApp=initializeApp(firebaseConfig);
@@ -1005,6 +1005,13 @@ function renderNotifPanel(notifs){
           groups.push({name:n.groupName,members:newMembers,memberNames:newMemberNames,
             groupId:n.groupId,adminUid:n.fromUid||'',avatar:n.groupAvatar||''});
           saveGroups();renderGroups();renderSpeedSend();
+          // Also add self to Firestore group members
+          if(n.groupId){
+            updateDoc(doc(db,'groups',n.groupId),{
+              members:arrayUnion(currentUser.uid),
+              memberNames:arrayUnion(myName)
+            }).catch(()=>{});
+          }
         }
         const allMembers=n.members||[];
         for(const uid of allMembers){if(uid===currentUser.uid)continue;try{await addDoc(collection(db,'notifications'),{toUid:uid,fromUid:currentUser.uid,fromName:myName,type:'group_joined',groupName:n.groupName,groupId:n.groupId,sentAt:serverTimestamp(),dismissed:false});}catch(e){}}
@@ -1046,17 +1053,25 @@ async function loadFriends(){
   // Load groups from Firestore where this user is a member
   try{
     const gSnap=await getDocs(query(collection(db,'groups'),where('members','array-contains',currentUser.uid)));
+    const firestoreGroupIds=[];
     gSnap.forEach(d=>{
       const gd=d.data();
+      if(!gd.groupId)return;
+      // Only include if user is still a member in Firestore
+      if(!(gd.members||[]).includes(currentUser.uid))return;
+      firestoreGroupIds.push(gd.groupId);
       const exists=groups.find(g=>g.groupId===gd.groupId);
-      if(!exists&&gd.groupId){
+      if(!exists){
         groups.push({name:gd.name,members:gd.members,memberNames:gd.memberNames||[],
-          groupId:gd.groupId,adminUid:gd.adminUid||'',avatar:gd.avatar||''});
-      }else if(exists){
+          groupId:gd.groupId,adminUid:gd.adminUid||'',coAdminUid:gd.coAdminUid||'',avatar:gd.avatar||''});
+      }else{
         Object.assign(exists,{name:gd.name,members:gd.members,memberNames:gd.memberNames||[],
-          adminUid:gd.adminUid||exists.adminUid,avatar:gd.avatar||exists.avatar||''});
+          adminUid:gd.adminUid||exists.adminUid,coAdminUid:gd.coAdminUid||exists.coAdminUid||'',
+          avatar:gd.avatar||exists.avatar||''});
       }
     });
+    // Remove any locally cached groups that Firestore no longer lists user as member of
+    groups=groups.filter(g=>!g.groupId||firestoreGroupIds.includes(g.groupId));
     localStorage.setItem('tb_groups',JSON.stringify(groups));
   }catch(e){console.warn('loadGroups:',e);}
   renderFriends();renderSpeedSend();renderGroups();
@@ -1282,6 +1297,7 @@ function saveGroups(){
       if(g.groupId) setDoc(doc(db,'groups',g.groupId),{
         name:g.name,members:g.members,memberNames:g.memberNames,
         groupId:g.groupId,adminUid:g.adminUid||currentUser.uid,
+        coAdminUid:g.coAdminUid||'',
         avatar:g.avatar||'',updatedAt:serverTimestamp()
       },{merge:true}).catch(()=>{});
     });
@@ -1503,6 +1519,13 @@ window._removeMember=function(i){
     const fname=f?f.nickname||f.name:uid;
     g.memberNames=(g.memberNames||[]).filter(n=>n!==fname);
     if(g.coAdminUid===uid)g.coAdminUid='';
+    // Update Firestore so member can't re-load the group
+    if(g.groupId){
+      updateDoc(doc(db,'groups',g.groupId),{
+        members:arrayRemove(uid),
+        memberNames:arrayRemove(fname)
+      }).catch(()=>{});
+    }
     saveGroups();renderGroups();renderSpeedSend();
     // Send system message + notify
     try{
@@ -1543,6 +1566,15 @@ toUid:uid,fromUid:currentUser.uid,fromName:myName,
       text:myName+' left '+g.name,sentAt:serverTimestamp(),pinned:false,readBy:[]
     });
   }catch(e){}
+  // Remove self from Firestore group so it doesn't re-appear on reload
+  if(g.groupId){
+    try{
+      await updateDoc(doc(db,'groups',g.groupId),{
+        members:arrayRemove(currentUser.uid),
+        memberNames:arrayRemove(myName)
+      });
+    }catch(e){console.warn('Firestore leave failed:',e);}
+  }
   groups.splice(i,1);
   saveGroups();renderGroups();renderSpeedSend();
   if(selectedTarget&&selectedTarget.uid==='grp_'+g.name){selectedTarget=null;renderChat();}
