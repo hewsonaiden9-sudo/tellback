@@ -47,8 +47,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auth-back:hover{color:var(--primary);}
 header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:var(--header-h);background:linear-gradient(180deg,#2c6fd4 0%,#1a50a8 100%);border-bottom:2px solid #1240820;box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.15);}
 body.dark header{background:linear-gradient(180deg,#1e2a4a 0%,#111e38 100%);border-bottom-color:#0a1020;box-shadow:0 2px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);}
-.header-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;color:#ffffff;text-shadow:0 1px 3px rgba(0,0,0,.4);}
-.header-logo span{color:#60a0ff;}
+.header-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;
+  color:#ffffff;
+  text-shadow:0 1px 0 rgba(255,255,255,.35),0 -1px 0 rgba(0,0,0,.4),0 2px 6px rgba(0,0,50,.5);
+  display:flex;align-items:center;gap:2px;position:relative;}
+.header-logo span{
+  color:#7fc4ff;
+  text-shadow:0 1px 0 rgba(255,255,255,.4),0 -1px 0 rgba(0,0,80,.5),0 2px 8px rgba(37,99,235,.6);}
+.header-logo-icon{display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:8px;
+  background:radial-gradient(circle at 40% 30%,#5a9fff 0%,#1a50cc 60%,#0a2880 100%);
+  box-shadow:0 2px 6px rgba(0,0,80,.5),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -2px 4px rgba(0,10,80,.3);
+  margin-right:7px;font-size:15px;position:relative;overflow:hidden;flex-shrink:0;}
+.header-logo-icon::after{content:'';position:absolute;top:1px;left:2px;right:2px;height:45%;
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 100%);
+  border-radius:4px 4px 0 0;pointer-events:none;}
 .header-right{display:flex;align-items:center;gap:8px;}
 .header-user{font-size:11px;color:rgba(255,255,255,0.9);font-family:'Syne',sans-serif;font-weight:700;}
 .status-dot-sm{width:8px;height:8px;border-radius:50%;display:inline-block;}
@@ -344,7 +357,7 @@ body.dark .member-item:hover{background:rgba(255,255,255,.05);}
 </div>
 <div id="appRoot" class="hidden">
 <header>
-  <div class="header-logo">Tell<span>Back</span></div>
+  <div class="header-logo"><div class="header-logo-icon">🎙</div>Tell<span>Back</span></div>
   <div class="header-right">
     <span class="status-dot-sm" id="headerStatusDot" style="background:#22c55e;"></span>
     <div>
@@ -1089,9 +1102,13 @@ renderFriends();renderSpeedSend();
   }catch(e){showToast('Could not save: '+e.message);}
 };
 function getInitials(n){return n.split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);}
-function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames}))];if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];let avHtml;
+function renderSpeedSend(){const box=document.getElementById('speedSend');box.innerHTML='';const all=[...friends,...groups.map(g=>({uid:'grp_'+g.name,name:g.name,isGroup:true,members:g.members,memberNames:g.memberNames,avatar:g.avatar||'',adminUid:g.adminUid||'',coAdminUid:g.coAdminUid||'',groupId:g.groupId||''}))]; if(!all.length){box.innerHTML='<div class="empty" style="padding:12px 4px;"><div class="emoji">&#128075;</div>Add a friend to get started</div>';return;}all.forEach((f,idx)=>{const name=f.nickname||f.name;const chip=document.createElement('div');chip.className='contact-chip'+(selectedTarget&&selectedTarget.uid===f.uid?' selected':'');chip.style.animationDelay=idx*30+'ms';const sc=SC[f.status||'offline'];let avHtml;
 if(f.isGroup){
-      avHtml='<div class="chip-avatar">GRP</div>';
+      if(f.avatar){
+        avHtml='<div class="chip-avatar" style="padding:0;overflow:hidden;background:none;"><img src="'+f.avatar+'" class="chip-avatar-img"></div>';
+      }else{
+        avHtml='<div class="chip-avatar" style="font-size:11px;">GRP</div>';
+      }
     }else if(f.avatar){
       avHtml='<div class="chip-avatar" style="padding:0;overflow:hidden;"><img src="'+f.avatar+'" class="chip-avatar-img"><span class="unread-dot" id="dot-'+f.uid+'"></span><span class="chip-status" style="background:'+sc+';"></span></div>';
     }else{
@@ -1357,15 +1374,33 @@ function renderGroups(){
 function toggleCreateGroup(){document.getElementById('createGroupPanel').classList.toggle('hidden');renderGroupCheckboxes();}
 function renderGroupCheckboxes(){
   const c=document.getElementById('groupFriendCheckboxes');
-  const sel=document.getElementById('groupCoAdminSelect');
+  const coSel=document.getElementById('groupCoAdminSelect');
   if(!c)return;c.innerHTML='';
-  if(sel){sel.innerHTML='<option value="">None</option>';}
+  if(coSel){coSel.innerHTML='<option value="">None</option>';}
   friends.forEach(f=>{
     const l=document.createElement('label');l.className='grp-check-item';
-    l.innerHTML='<input type="checkbox" value="'+f.uid+'"> '+(f.nickname||f.name);
+    const inp=document.createElement('input');inp.type='checkbox';inp.value=f.uid;
+    const span=document.createElement('span');span.textContent=' '+(f.nickname||f.name);
+    l.appendChild(inp);l.appendChild(span);
+    // When a member is checked/unchecked, update the co-admin dropdown
+    inp.onchange=()=>syncCoAdminSelect();
     c.appendChild(l);
-    if(sel){const o=document.createElement('option');o.value=f.uid;o.textContent=f.nickname||f.name;sel.appendChild(o);}
   });
+}
+function syncCoAdminSelect(){
+  const coSel=document.getElementById('groupCoAdminSelect');
+  if(!coSel)return;
+  const prev=coSel.value;
+  coSel.innerHTML='<option value="">None</option>';
+  const checked=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')];
+  checked.forEach(cb=>{
+    const f=friends.find(x=>x.uid===cb.value);
+    if(!f)return;
+    const o=document.createElement('option');o.value=f.uid;o.textContent=f.nickname||f.name;
+    coSel.appendChild(o);
+  });
+  // Restore previous selection if still valid
+  if(prev&&[...coSel.options].some(o=>o.value===prev))coSel.value=prev;
 }
 async function createGroup(){
   const sel=[...document.querySelectorAll('#groupFriendCheckboxes input:checked')].map(cb=>cb.value);
@@ -1421,6 +1456,7 @@ window._groupPhoto=function(i){
     const avatar=canvas.toDataURL('image/jpeg',0.75);
     groups[i].avatar=avatar;
     saveGroups();renderGroups();renderSpeedSend();
+    saveGroups();renderSpeedSend();
     showToast('Group photo updated');
   };
   input.click();
@@ -1710,4 +1746,4 @@ window._setupRecaptcha(auth, signInWithPhoneNumber);
 window.sendCode=sendCode;window.verifyCode=verifyCode;window.goBackToStep1=goBackToStep1;window.saveDisplayName=saveDisplayName;window.signOutUser=signOutUser;window.showPage=showPage;window.toggleDark=toggleDark;window.saveSettings=saveSettings;window.showAddFriendModal=showAddFriendModal;window.confirmAddFriend=confirmAddFriend;window.setStatus=setStatus;window.openModal=openModal;window.closeModal=closeModal;window.toggleCreateGroup=toggleCreateGroup;window.createGroup=createGroup;window.renderNotifPanel=renderNotifPanel;window.triggerAvatarUpload=triggerAvatarUpload;window.handleAvatarUpload=handleAvatarUpload;window.saveCustomStatus=saveCustomStatus;window.removeAvatar=removeAvatar;window.copyTag=copyTag;window.addFriendByTag=addFriendByTag;window.shareInviteLink=shareInviteLink;window.closeDropdown=closeDropdown;window.showMemberProfile=showMemberProfile;
 </script>
 </body>
-</html>
+  </html>
